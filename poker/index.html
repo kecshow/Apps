@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0b1d33">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Blue Felt Poker">
+  <title>Blue Felt Poker</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="table" role="tab">🃏 Table</button>
+      <button class="tab" data-tab="hands" role="tab">📖 Hands</button>
+    </nav>
+    <button id="menuBtn" class="icon-btn" aria-label="Menu">☰</button>
+  </header>
+
+  <main>
+    <!-- ======================= TABLE VIEW ======================= -->
+    <section id="view-table" class="view active">
+      <div id="msg" class="msg">Welcome to the table</div>
+
+      <div class="table-wrap">
+        <div class="table">
+          <div class="rail"></div>
+          <div class="felt">
+            <div class="felt-line"></div>
+            <svg class="felt-text" viewBox="0 0 300 460" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+              <defs>
+                <path id="arcTop" d="M 40 175 A 115 115 0 0 1 260 175" />
+                <path id="arcBottom" d="M 52 290 A 105 105 0 0 0 248 290" />
+              </defs>
+              <text class="felt-title"><textPath href="#arcTop" startOffset="50%" text-anchor="middle" id="feltTitle">TEXAS HOLD'EM</textPath></text>
+              <text class="felt-suits" x="150" y="152" text-anchor="middle">♠&#xFE0E; ♥&#xFE0E; ♣&#xFE0E; ♦&#xFE0E;</text>
+              <text class="felt-sub"><textPath href="#arcBottom" startOffset="50%" text-anchor="middle">♠&#xFE0E; POKER ♥&#xFE0E; NO LIMIT ♣&#xFE0E; POKER ♦&#xFE0E;</textPath></text>
+              <text class="felt-small" id="feltSmall" x="150" y="392" text-anchor="middle">DEALER BURNS ONE CARD BEFORE EACH ROUND</text>
+            </svg>
+            <div class="center">
+              <div id="pot" class="pot"><span class="chip-ico"></span><span id="potAmt">$0</span></div>
+              <div id="board" class="board"></div>
+            </div>
+          </div>
+
+          <div class="seat" id="seat-0" data-pos="bottom"></div>
+          <div class="seat" id="seat-1" data-pos="left"></div>
+          <div class="seat" id="seat-2" data-pos="top"></div>
+          <div class="seat" id="seat-3" data-pos="right"></div>
+
+          <div class="bet" id="bet-0" data-pos="bottom"></div>
+          <div class="bet" id="bet-1" data-pos="left"></div>
+          <div class="bet" id="bet-2" data-pos="top"></div>
+          <div class="bet" id="bet-3" data-pos="right"></div>
+        </div>
+      </div>
+
+      <div class="my-area">
+        <div id="myHandName" class="my-hand-name"></div>
+        <div id="myCards" class="my-cards"></div>
+        <div id="actions" class="actions">
+          <div class="raise-row" id="raiseRow">
+            <div class="presets">
+              <button class="preset" data-preset="min">Min</button>
+              <button class="preset" data-preset="half">½ Pot</button>
+              <button class="preset" data-preset="pot">Pot</button>
+              <button class="preset" data-preset="allin">All-in</button>
+            </div>
+            <input type="range" id="raiseSlider" min="0" max="100" step="10" value="0">
+          </div>
+          <div class="btn-row" id="btnRow">
+            <button class="act fold" id="btnFold">Fold</button>
+            <button class="act call" id="btnCall">Check</button>
+            <button class="act raise" id="btnRaise">Raise</button>
+          </div>
+          <div class="btn-row" id="drawRow" hidden>
+            <button class="act draw" id="btnDraw">Stand pat</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= HANDS VIEW ======================= -->
+    <section id="view-hands" class="view">
+      <div class="hands-scroll">
+        <h1>Poker Hand Rankings</h1>
+        <p class="lead">From strongest to weakest. A higher hand on this list always beats a lower one.
+          The same list is used in both Five Card Draw and Texas Hold'em.</p>
+        <div id="handsList"></div>
+
+        <h2>When two players have the same kind of hand</h2>
+        <ul class="rules">
+          <li><b>Higher cards win.</b> A pair of Kings beats a pair of Nines. A Flush with an Ace beats a Flush topped by a King.</li>
+          <li><b>Kickers.</b> If the main part is equal (both have a pair of Jacks), the remaining cards are compared from highest down. That leftover card is called the <i>kicker</i>.</li>
+          <li><b>Full House:</b> the three-of-a-kind part is compared first, then the pair.</li>
+          <li><b>Two Pair:</b> top pair first, then the second pair, then the kicker.</li>
+          <li><b>Suits never matter.</b> ♠ ♥ ♦ ♣ are all equal. If hands are exactly equal, the pot is split.</li>
+          <li><b>A-2-3-4-5</b> is the lowest straight (a "wheel"). The Ace can be high or low, but you can't wrap around (Q-K-A-2-3 is not a straight).</li>
+        </ul>
+
+        <h2>The two games</h2>
+        <div class="game-card">
+          <h3>Five Card Draw</h3>
+          <p>Everyone gets 5 private cards. After a betting round, you may swap up to 3 cards (4 if you keep an Ace). Then there is one more betting round and a showdown. Your hand is just your 5 cards.</p>
+        </div>
+        <div class="game-card">
+          <h3>Texas Hold'em</h3>
+          <p>Everyone gets 2 private cards. Then 5 shared cards are dealt face up in the middle: the <i>flop</i> (3), the <i>turn</i> (1) and the <i>river</i> (1), with betting between each. Your hand is the best 5 cards from your 2 plus the 5 shared ones.</p>
+        </div>
+
+        <h2>Betting basics</h2>
+        <ul class="rules">
+          <li><b>Blinds:</b> the two players left of the dealer button (D) put in $10 and $20 before the cards come, so there's always something to play for.</li>
+          <li><b>Check:</b> pass without betting, only if nobody has bet yet. <b>Call:</b> match the current bet. <b>Raise:</b> bet more. <b>Fold:</b> give up your hand.</li>
+          <li><b>All-in:</b> if you bet all your chips, you can only win as much from each player as you put in yourself. Any extra goes to a <i>side pot</i>.</li>
+        </ul>
+
+        <h2>Fair shuffle</h2>
+        <p class="lead">Each hand starts from a fresh 52-card deck, shuffled with the Fisher–Yates method and your device's
+          cryptographic random number generator (the same kind used for security). Every possible order of the deck is equally likely,
+          just like a perfect real-life shuffle. Nothing is weighted, nobody gets "lucky streaks" on purpose,
+          and the computer players can't see your cards or the deck.</p>
+        <div class="spacer"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ======================= OVERLAYS ======================= -->
+  <div id="startScreen" class="overlay show">
+    <div class="sheet start">
+      <div class="logo">♠&#xFE0E; ♥&#xFE0E; ♣&#xFE0E; ♦&#xFE0E;</div>
+      <h1>Blue Felt Poker</h1>
+      <p>You vs 3 players · Everyone starts with $1,000</p>
+      <div id="continueBox" hidden>
+        <button class="big-btn primary" id="btnContinue">Continue</button>
+        <div class="or">or start a new game</div>
+      </div>
+      <button class="big-btn mode-btn" data-mode="holdem"><b>Texas Hold'em</b><span>2 private cards + 5 shared</span></button>
+      <button class="big-btn mode-btn" data-mode="draw"><b>Five Card Draw</b><span>5 private cards, swap up to 3</span></button>
+    </div>
+  </div>
+
+  <div id="menu" class="overlay">
+    <div class="sheet">
+      <h2>Menu</h2>
+      <p class="hint">Game type (switches from the next hand, chips are kept):</p>
+      <div class="seg">
+        <button class="seg-btn" data-setmode="holdem">Texas Hold'em</button>
+        <button class="seg-btn" data-setmode="draw">Five Card Draw</button>
+      </div>
+      <p class="hint">Speed:</p>
+      <div class="seg">
+        <button class="seg-btn" data-speed="1.6">Slow</button>
+        <button class="seg-btn" data-speed="1">Normal</button>
+        <button class="seg-btn" data-speed="0.5">Fast</button>
+      </div>
+      <button class="big-btn danger" id="btnRestart">Restart game (everyone back to $1,000)</button>
+      <button class="big-btn" id="btnCloseMenu">Close</button>
+    </div>
+  </div>
+
+  <div id="result" class="overlay">
+    <div class="sheet result">
+      <div id="resultBody"></div>
+      <button class="big-btn primary" id="btnNext">Next hand</button>
+    </div>
+  </div>
+
+  <div id="notice" class="overlay">
+    <div class="sheet center-sheet">
+      <div id="noticeIcon" class="notice-icon"></div>
+      <h2 id="noticeTitle"></h2>
+      <p id="noticeText"></p>
+      <button class="big-btn primary" id="btnNotice">OK</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/engine.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
