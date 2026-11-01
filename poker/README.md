@@ -15,6 +15,16 @@ It's a static web app with no build step and no dependencies. Host the `poker/` 
 
 To run it locally: `python3 -m http.server` in this folder, then open `http://<your-computer-ip>:8000` on your phone.
 
+## Android APK
+
+`poker/android/` wraps the game in a small native Android app: a full-screen WebView with the game files bundled inside, so it works offline and is locked to portrait. It runs on Android 7.0 and newer.
+
+```
+poker/android/build-apk.sh   # -> poker/android/build/BlueFeltPoker.apk
+```
+
+You don't need Android Studio or the Android SDK. The script downloads `aapt2`, the Android API stubs, `dx` and `apksig` from Maven Central into `poker/android/.tools/`. You do need Java 17+, python3, curl and zip. The first build creates a signing key at `poker/android/release.p12`, which is not committed. Keep it: an update only installs over an existing install if it is signed with the same key. You can point the script at your own key with `KEYSTORE=... KEYSTORE_PASS=...`.
+
 ## Tests
 
 ```
