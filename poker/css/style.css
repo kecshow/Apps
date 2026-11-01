@@ -337,3 +337,99 @@ input[type=range] { width: 100%; accent-color: var(--gold); height: 26px; margin
 /* top seat: cards to the right so they don't cover the felt print */
 .seat[data-pos="top"] .seat-cards { position: absolute; left: calc(100% + 8px); top: 6px; margin: 0; }
 .seat-cards .card + .card { margin-left: calc(var(--w) * -0.55); }
+
+/* ---------------- Long opponent names ---------------- */
+.plate .nm { max-width: 96px; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---------------- Start screen: blackjack button ---------------- */
+.mode-btn.bj { box-shadow: inset 0 0 0 1px rgba(80, 200, 120, .6); }
+.mode-btn.bj b { color: #7be3a0; }
+
+/* ---------------- Blackjack (green table) ---------------- */
+#view-bj { background: radial-gradient(120% 70% at 50% 30%, #123a26 0%, #07140d 75%); }
+.bj-wrap { flex: 1; min-height: 0; position: relative; padding: 4px 10px 6px; }
+.bj-table {
+  position: absolute; inset: 4px 10px 6px;
+  border-radius: 18px 18px 50% 50% / 18px 18px 34% 34%;
+  background: linear-gradient(160deg, #3a2a20, #1a110c 60%, #2b1d15);
+  box-shadow: 0 18px 40px rgba(0,0,0,.6), inset 0 2px 3px rgba(255,255,255,.18);
+  padding: 0 14px 14px;
+}
+.bj-felt {
+  position: relative; width: 100%; height: 100%; overflow: hidden;
+  border-radius: 6px 6px 50% 50% / 6px 6px 34% 34%;
+  background: radial-gradient(ellipse at 50% 40%, #33a05c 0%, #1d7a40 55%, #0f5229 100%);
+  box-shadow: inset 0 0 40px rgba(0,0,0,.55), inset 0 0 0 3px rgba(0,0,0,.2);
+}
+.bj-felt::before {
+  content: ""; position: absolute; inset: 0; opacity: .18; pointer-events: none;
+  background-image:
+    repeating-radial-gradient(circle at 30% 20%, rgba(255,255,255,.06) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(45deg, rgba(0,0,0,.08) 0 1px, transparent 1px 4px);
+}
+.bj-dealer { position: absolute; top: 4%; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 2; }
+.bj-label { font-size: 12px; letter-spacing: 2px; font-weight: 800; color: rgba(255,255,255,.75); display: flex; gap: 8px; align-items: center; }
+.bj-cards { display: flex; gap: 5px; --w: min(15vw, 62px); min-height: calc(var(--w) * 1.4); }
+.bj-cards.stack .card + .card { margin-left: calc(var(--w) * -0.45); }
+.bj-total {
+  display: inline-block; min-width: 26px; padding: 2px 8px; border-radius: 999px; font-size: 13px; font-weight: 800;
+  background: rgba(0,0,0,.45); color: #fff; letter-spacing: 0;
+}
+.bj-total:empty { display: none; }
+.bj-total.bust { background: var(--red); }
+.bj-shoe { position: absolute; top: 3%; right: 5%; font-size: 10.5px; color: rgba(255,255,255,.55); font-weight: 700; z-index: 2; }
+.bj-text { position: absolute; left: 0; right: 0; top: 33%; width: 100%; height: 26%; pointer-events: none; }
+.bj-t1 { fill: var(--gold); font-family: Georgia, "Times New Roman", serif; font-weight: 800; font-size: 19px; letter-spacing: 2px; opacity: .9; }
+.bj-t2 { fill: rgba(255,255,255,.72); font-size: 7.6px; font-weight: 700; letter-spacing: .5px; }
+.bj-t3 { fill: rgba(255,255,255,.3); font-size: 13px; letter-spacing: 6px; }
+
+.bj-hands {
+  position: absolute; left: 0; right: 0; bottom: 9%; top: 58%; z-index: 2;
+  display: flex; justify-content: center; align-items: flex-end; gap: 8px; padding: 0 8px;
+}
+.bj-hands.n1 { --w: min(17vw, 70px); }
+.bj-hands.n2 { --w: min(13vw, 56px); }
+.bj-hands.n3, .bj-hands.n4 { --w: min(10vw, 44px); gap: 4px; }
+.bj-hand { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 6px; border-radius: 12px; transition: background .2s; }
+.bj-hand .bj-cards { --w: inherit; }
+.bj-hand.active { background: rgba(255,255,255,.12); box-shadow: 0 0 0 2px #7CFFB2, 0 0 16px rgba(124,255,178,.5); }
+.bj-hand.r-lose .bj-cards { filter: brightness(.6) saturate(.6); }
+.bj-meta { display: flex; gap: 5px; align-items: center; }
+.bj-chip {
+  font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,.4); color: var(--gold);
+  box-shadow: inset 0 0 0 1px rgba(242,199,92,.5);
+}
+.bj-chip.big { font-size: 18px; padding: 10px 16px; }
+.bj-res { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); white-space: nowrap; z-index: 3; animation: pop .25s ease-out; }
+.bj-spot {
+  width: 120px; height: 72px; border-radius: 50%; border: 2px dashed rgba(255,255,255,.35);
+  display: grid; place-items: center; margin-bottom: 10px; color: rgba(255,255,255,.55); font-size: 11px; text-align: center; padding: 6px;
+}
+
+.bj-controls { padding: 0 10px calc(8px + var(--safe-b)); }
+.bj-bank { text-align: center; font-size: 14px; color: #cfe8d8; margin: 2px 0 8px; }
+.bj-bank b { color: #fff; }
+.bj-bank .sep { margin: 0 8px; opacity: .5; }
+.bj-chiprow { display: flex; justify-content: space-around; margin-bottom: 10px; }
+.bj-chipbtn {
+  width: 58px; height: 58px; border-radius: 50%; font-weight: 900; font-size: 15px; color: #fff;
+  box-shadow: 0 3px 0 rgba(0,0,0,.4), inset 0 0 0 5px rgba(255,255,255,.85), inset 0 0 0 7px rgba(0,0,0,.25);
+  text-shadow: 0 1px 2px rgba(0,0,0,.6);
+}
+.bj-chipbtn:active { transform: translateY(2px); }
+.bj-chipbtn:disabled { opacity: .35; }
+.bj-chipbtn.c10 { background: repeating-conic-gradient(#2f6fd6 0 30deg, #2559ad 30deg 60deg); }
+.bj-chipbtn.c50 { background: repeating-conic-gradient(#d8323c 0 30deg, #ad252d 30deg 60deg); }
+.bj-chipbtn.c100 { background: repeating-conic-gradient(#222 0 30deg, #444 30deg 60deg); }
+.bj-chipbtn.c500 { background: repeating-conic-gradient(#8a3fd1 0 30deg, #6a2aa8 30deg 60deg); }
+.act.wide { width: 100%; display: block; }
+.bj-summary { background: var(--panel); border-radius: 12px; padding: 8px 10px; margin-bottom: 8px; max-height: 30vh; overflow-y: auto; }
+.bj-sum-head { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .5px; margin-bottom: 4px; }
+.bj-sum-row { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; }
+.bj-sum-row .badge { flex: none; margin-top: 1px; }
+.bj-sum-txt { font-size: 13.5px; color: #dbe7f5; line-height: 1.35; }
+@media (max-height: 700px) {
+  .bj-chipbtn { width: 50px; height: 50px; font-size: 14px; }
+  .bj-cards { --w: min(12.5vw, 52px); }
+  .bj-hands.n1 { --w: min(14vw, 58px); }
+}

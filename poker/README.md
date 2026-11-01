@@ -1,8 +1,10 @@
 # Blue Felt Poker
 
-A phone-first (portrait) poker game: you vs 3 computer players, everyone starts with $1,000.
+A phone-first (portrait) card game app: poker against 3 computer players, or blackjack against the dealer. You start with $1,000.
 
-- **Two games:** Texas Hold'em or Five Card Draw. Pick one at the start, or switch any time from the ☰ menu (it takes effect from the next hand).
+- **Three games:** Texas Hold'em, Five Card Draw (blue table) and Blackjack (green table). Pick one at the start or switch from the ☰ menu. A switch waits for the current hand or round to finish.
+- **Famous opponents:** every new poker game seats 3 random opponents from US presidents (Roosevelt, Truman, Reagan, both Bushes, Clinton), Soviet leaders (Gorbachev, Hrushchov), Hungarian leaders (Horthy, Rákosi, Kádár) and every Formula 1 World Champion. Hungarian names use Hungarian order ("Kádár J."), others are initial first ("R. Reagan").
+- **Blackjack:** 6-deck shoe with a cut card, the dealer stands on all 17s, blackjack pays 3 to 2, double on any first two cards, split up to 4 hands. Every hand's result is explained.
 - **Hands tab:** every hand from Royal Flush down to High Card, with example cards, odds and tie-break rules.
 - **Showdown explanations:** after every hand a results sheet shows each player's cards and best 5. It says who won and exactly why each other player lost: a lower hand type, a lower pair, or a kicker. The card that lost the tie-break is marked in red.
 - **Fair cards:** each hand uses a fresh 52-card deck shuffled with Fisher–Yates and the device's cryptographic RNG (`crypto.getRandomValues`, with rejection sampling so there is no modulo bias). Nothing is weighted. The computer players only see their own cards and the board.

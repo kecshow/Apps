@@ -87,6 +87,62 @@
       </div>
     </section>
 
+    <!-- ======================= BLACKJACK VIEW ======================= -->
+    <section id="view-bj" class="view">
+      <div id="bjMsg" class="msg">Place your bet, then tap Deal</div>
+      <div class="bj-wrap">
+        <div class="bj-table">
+          <div class="bj-felt">
+            <div class="bj-dealer">
+              <div class="bj-label">DEALER <span id="bjDealerTotal" class="bj-total"></span></div>
+              <div id="bjDealerCards" class="bj-cards"></div>
+            </div>
+            <div id="bjShoe" class="bj-shoe"></div>
+            <svg class="bj-text" viewBox="0 0 300 110" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+              <defs>
+                <path id="bjArc1" d="M 18 14 A 210 210 0 0 0 282 14" />
+                <path id="bjArc2" d="M 22 40 A 200 200 0 0 0 278 40" />
+                <path id="bjArc3" d="M 70 84 A 170 170 0 0 0 230 84" />
+              </defs>
+              <text class="bj-t1"><textPath href="#bjArc1" startOffset="50%" text-anchor="middle">BLACKJACK PAYS 3 TO 2</textPath></text>
+              <text class="bj-t2"><textPath href="#bjArc2" startOffset="50%" text-anchor="middle">DEALER MUST DRAW TO 16 AND STAND ON ALL 17'S</textPath></text>
+              <text class="bj-t3"><textPath href="#bjArc3" startOffset="50%" text-anchor="middle">♠&#xFE0E; ♥&#xFE0E; ♣&#xFE0E; ♦&#xFE0E;</textPath></text>
+            </svg>
+            <div id="bjHands" class="bj-hands"></div>
+          </div>
+        </div>
+      </div>
+      <div class="bj-controls">
+        <div class="bj-bank">Chips <b id="bjBank">$1,000</b><span class="sep">·</span>Bet <b id="bjBetAmt">$0</b></div>
+        <div id="bjBetUI">
+          <div class="bj-chiprow">
+            <button class="bj-chipbtn c10" data-v="10">10</button>
+            <button class="bj-chipbtn c50" data-v="50">50</button>
+            <button class="bj-chipbtn c100" data-v="100">100</button>
+            <button class="bj-chipbtn c500" data-v="500">500</button>
+          </div>
+          <div class="btn-row">
+            <button class="act fold" id="bjClear">Clear</button>
+            <button class="act raise" id="bjDeal">Deal</button>
+          </div>
+        </div>
+        <div id="bjPlayUI" hidden>
+          <div class="btn-row">
+            <button class="act call" id="bjHit">Hit</button>
+            <button class="act fold" id="bjStand">Stand</button>
+          </div>
+          <div class="btn-row" style="margin-top:8px">
+            <button class="act raise" id="bjDouble">Double</button>
+            <button class="act draw" id="bjSplit">Split</button>
+          </div>
+        </div>
+        <div id="bjDoneUI" hidden>
+          <div id="bjSummary" class="bj-summary"></div>
+          <button class="act raise wide" id="bjNext">Next round</button>
+        </div>
+      </div>
+    </section>
+
     <!-- ======================= HANDS VIEW ======================= -->
     <section id="view-hands" class="view">
       <div class="hands-scroll">
@@ -122,11 +178,26 @@
           <li><b>All-in:</b> if you bet all your chips, you can only win as much from each player as you put in yourself. Any extra goes to a <i>side pot</i>.</li>
         </ul>
 
+        <h2>Blackjack</h2>
+        <div class="game-card">
+          <p>Beat the dealer by getting closer to 21 without going over. Cards 2–10 count as their number, J, Q and K count as 10, and an Ace counts as 11 or 1, whichever helps you.</p>
+        </div>
+        <ul class="rules">
+          <li><b>Blackjack:</b> an Ace plus a 10-value card as your first two cards. It pays 3 to 2 (bet $10, win $15).</li>
+          <li><b>Hit</b> takes another card. <b>Stand</b> keeps your total. Go over 21 and you <b>bust</b>: you lose straight away, even if the dealer busts later.</li>
+          <li><b>Double:</b> on your first two cards, double your bet and take exactly one more card.</li>
+          <li><b>Split:</b> two cards of the same value become two separate hands, each with its own bet (up to 4 hands). Split Aces get one card each, and 21 after a split pays 1 to 1, not 3 to 2.</li>
+          <li><b>Dealer:</b> one card stays face down. With an Ace or a 10 showing, the dealer checks for Blackjack first. The dealer must draw to 16 and stand on all 17s, with no choices.</li>
+          <li><b>Soft hand:</b> a hand where an Ace is counted as 11 ("Soft 17" = Ace + 6). It can't bust on the next card.</li>
+          <li><b>Push:</b> same total as the dealer. Your bet comes back.</li>
+          <li><b>The shoe:</b> 6 decks shuffled together. When the cut card comes out, the dealer shuffles a fresh shoe.</li>
+        </ul>
+
         <h2>Fair shuffle</h2>
         <p class="lead">Each hand starts from a fresh 52-card deck, shuffled with the Fisher–Yates method and your device's
           cryptographic random number generator (the same kind used for security). Every possible order of the deck is equally likely,
           just like a perfect real-life shuffle. Nothing is weighted, nobody gets "lucky streaks" on purpose,
-          and the computer players can't see your cards or the deck.</p>
+          and the computer players can't see your cards or the deck. Blackjack uses a 6-deck shoe shuffled the same way, with a fresh shuffle whenever the cut card comes out.</p>
         <div class="spacer"></div>
       </div>
     </section>
@@ -137,23 +208,25 @@
     <div class="sheet start">
       <div class="logo">♠&#xFE0E; ♥&#xFE0E; ♣&#xFE0E; ♦&#xFE0E;</div>
       <h1>Blue Felt Poker</h1>
-      <p>You vs 3 players · Everyone starts with $1,000</p>
+      <p>Poker vs 3 famous opponents, or Blackjack · Start with $1,000</p>
       <div id="continueBox" hidden>
         <button class="big-btn primary" id="btnContinue">Continue</button>
         <div class="or">or start a new game</div>
       </div>
       <button class="big-btn mode-btn" data-mode="holdem"><b>Texas Hold'em</b><span>2 private cards + 5 shared</span></button>
       <button class="big-btn mode-btn" data-mode="draw"><b>Five Card Draw</b><span>5 private cards, swap up to 3</span></button>
+      <button class="big-btn mode-btn bj" data-mode="blackjack"><b>Blackjack</b><span>You vs the dealer on a green table</span></button>
     </div>
   </div>
 
   <div id="menu" class="overlay">
     <div class="sheet">
       <h2>Menu</h2>
-      <p class="hint">Game type (switches from the next hand, chips are kept):</p>
+      <p class="hint">Game (switches after the current hand, chips are kept):</p>
       <div class="seg">
-        <button class="seg-btn" data-setmode="holdem">Texas Hold'em</button>
-        <button class="seg-btn" data-setmode="draw">Five Card Draw</button>
+        <button class="seg-btn" data-setmode="holdem">Hold'em</button>
+        <button class="seg-btn" data-setmode="draw">5-Card Draw</button>
+        <button class="seg-btn" data-setmode="blackjack">Blackjack</button>
       </div>
       <p class="hint">Speed:</p>
       <div class="seg">
@@ -161,7 +234,7 @@
         <button class="seg-btn" data-speed="1">Normal</button>
         <button class="seg-btn" data-speed="0.5">Fast</button>
       </div>
-      <button class="big-btn danger" id="btnRestart">Restart game (everyone back to $1,000)</button>
+      <button class="big-btn danger" id="btnRestart">Restart game (back to $1,000)</button>
       <button class="big-btn" id="btnCloseMenu">Close</button>
     </div>
   </div>
@@ -185,6 +258,8 @@
 
 <script src="js/engine.js"></script>
 <script src="js/ai.js"></script>
+<script src="js/names.js"></script>
+<script src="js/blackjack.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>

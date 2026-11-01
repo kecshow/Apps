@@ -26,8 +26,8 @@ fi
 AAPT2=$T/prebuilt/linux/aapt2
 FRAMEWORK=$T/prebuilt/android-framework.jar
 
-VERSION_CODE=${VERSION_CODE:-1}
-VERSION_NAME=${VERSION_NAME:-1.0}
+VERSION_CODE=${VERSION_CODE:-2}
+VERSION_NAME=${VERSION_NAME:-1.1}
 
 rm -rf "$B/assets" "$B/classes" "$B"/*.apk "$B/res.zip" "$B/classes.dex"
 # 1) Web game -> assets
