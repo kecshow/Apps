@@ -19,6 +19,9 @@ To run it locally: `python3 -m http.server` in this folder, then open `http://<y
 
 ## Android APK
 
+**Download:** [`BlueFeltPoker.apk`](BlueFeltPoker.apk) (version 1.1, Android 7.0+). On your phone, open the link, tap **Download raw file**, then open it to install. Allow "install unknown apps" if Android asks.
+
+
 `poker/android/` wraps the game in a small native Android app: a full-screen WebView with the game files bundled inside, so it works offline and is locked to portrait. It runs on Android 7.0 and newer.
 
 ```
