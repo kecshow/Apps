@@ -22,6 +22,7 @@
     app: 'poker', pendingApp: null, pokerOn: false,
   };
   const LAST_KEY = 'bluefelt-last-game';
+  const SPEED_KEY = 'bluefelt-speed';
 
   // ---------------------------------------------------------------------------
   // Abortable waiting (so "Restart" can cancel a hand in progress)
@@ -800,6 +801,33 @@
     }).join('');
   }
 
+  /** Blackjack card values + worked examples on the Rules tab. */
+  function buildBjRules() {
+    const c = (t) => {
+      const r = { A: 14, K: 13, Q: 12, J: 11, T: 10 }[t[0]] || +t[0];
+      return { r, s: { s: 0, h: 1, d: 2, c: 3 }[t[1]], id: 'bj' + t };
+    };
+    const item = ([title, cards, desc, badge]) => `<div class="hand-item"><div class="body">
+        <div class="title">${title}${badge ? ` <span class="bj-total">${badge}</span>` : ''}</div>
+        <div class="ex">${cards.split(' ').map((t) => cardHTML(c(t))).join('')}</div>
+        <div class="desc" style="margin:7px 0 0">${desc}</div></div></div>`;
+    $('#bjValues').innerHTML = [
+      ['Number cards', '2c 5d 9s', 'Count as their number: 2 to 9 (and 10 counts 10).'],
+      ['10 and picture cards', 'Th Js Qd Kc', 'All count as 10.'],
+      ['Ace', 'As', 'Counts as 11, or as 1 when 11 would take you over 21. It switches on its own.'],
+    ].map(item).join('');
+    $('#bjExamples').innerHTML = [
+      ['Blackjack', 'As Kh', 'An Ace plus a 10-value card as your first two cards. Pays 3 to 2 and beats a normal 21.', 'Blackjack'],
+      ['Hard 17', 'Td 7c', 'No Ace, so it can only be 17. Any card of 5 or more would bust you.', '17'],
+      ['Soft 17', 'Ah 6s', 'The Ace counts as 11, so it is 17. It can\'t bust on the next card: the Ace drops to 1 if it needs to.', 'Soft 17'],
+      ['Ace switching to 1', 'Ac 6d 9h', '11 + 6 + 9 would be 26, so the Ace counts as 1 instead: 1 + 6 + 9 = 16.', '16'],
+      ['Bust', 'Ks 6h 9c', '10 + 6 + 9 = 25. Over 21, so the hand loses straight away.', 'Bust 25'],
+      ['You can split', '8c 8d', 'Two cards of the same value can be split into two hands, each with its own bet.', '16'],
+      ['Dealer must hit', 'Ts 6d', 'The dealer has 16, so they must take another card. They have no choice.', '16'],
+      ['Dealer must stand', 'Ad 6c', 'Soft 17 is still 17. At this table the dealer stands on all 17s.', 'Soft 17'],
+    ].map(item).join('');
+  }
+
   // ---------------------------------------------------------------------------
   // Event wiring
   // ---------------------------------------------------------------------------
@@ -853,55 +881,34 @@
     $('#btnNext').addEventListener('click', () => { if (G.nextDone) { const d = G.nextDone; G.nextDone = null; d(); } });
     $('#btnNotice').addEventListener('click', () => { if (G.noticeDone) { const d = G.noticeDone; G.noticeDone = null; d(); } });
 
-    // Start screen
+    // Main menu
     $$('.mode-btn').forEach((b) => b.addEventListener('click', () => {
-      if (b.dataset.mode === 'blackjack') { enterBlackjack(true); return; }
-      try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* ignore */ }
-      startGame(b.dataset.mode, null);
-    }));
-    $('#btnContinue').addEventListener('click', () => {
+      if (b.dataset.mode === 'blackjack') { enterBlackjack(false); return; }
       const s = load();
-      if (s) G.speed = s.speed || 1;
-      if (getLast() === 'blackjack') { enterBlackjack(false); return; }
-      if (s) startGame(s.mode || 'holdem', s);
-    });
-
-    // Menu
-    $('#menuBtn').addEventListener('click', () => { syncMenu(); $('#menu').classList.add('show'); });
-    $('#btnCloseMenu').addEventListener('click', () => $('#menu').classList.remove('show'));
-    $('#menu').addEventListener('click', (e) => { if (e.target.id === 'menu') $('#menu').classList.remove('show'); });
-    $$('[data-setmode]').forEach((b) => b.addEventListener('click', () => {
-      const m = b.dataset.setmode;
-      if (m === 'blackjack') {
-        if (G.app === 'blackjack') { syncMenu(); return; }
-        if (pokerHandInProgress()) {
-          G.pendingApp = 'blackjack';
-          G.pendingMode = null;
-          setMsg('Switching to Blackjack after this hand');
-        } else {
-          $('#menu').classList.remove('show');
-          enterBlackjack(false);
-        }
-        syncMenu();
-        return;
-      }
-      if (G.app === 'blackjack') {
-        $('#menu').classList.remove('show');
-        enterPoker(m);
-        return;
-      }
-      G.pendingApp = null;
-      G.pendingMode = m === G.mode ? null : m;
-      if (!G.players.length || !G.players[0].hand.length) { G.mode = m; G.pendingMode = null; updateFelt(); render(); }
-      save();
-      syncMenu();
-      if (G.pendingMode) setMsg(`Switching to ${m === 'holdem' ? "Texas Hold'em" : 'Five Card Draw'} next hand`);
+      startGame(b.dataset.mode, s && s.chips && s.chips[0] > 0 ? s : null);
     }));
-    $$('[data-speed]').forEach((b) => b.addEventListener('click', () => { G.speed = +b.dataset.speed; save(); syncMenu(); }));
+    $('#menuBtn').addEventListener('click', goToMenu);
+    $$('[data-speed]').forEach((b) => b.addEventListener('click', () => {
+      G.speed = +b.dataset.speed;
+      try { localStorage.setItem(SPEED_KEY, String(G.speed)); } catch (e) { /* ignore */ }
+      syncMenu();
+    }));
+    let armed = null;
+    const resetLabel = 'Reset all chips to $1,000';
     $('#btnRestart').addEventListener('click', () => {
-      $('#menu').classList.remove('show');
-      if (G.app === 'blackjack') { window.BJ.restart(); return; }
-      startGame(G.pendingMode || G.mode, null);
+      const btn = $('#btnRestart');
+      if (!armed) {
+        btn.textContent = 'Tap again to reset ALL chips';
+        armed = setTimeout(() => { armed = null; btn.textContent = resetLabel; }, 3000);
+        return;
+      }
+      clearTimeout(armed);
+      armed = null;
+      try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* ignore */ }
+      window.BJ.resetBank();
+      btn.textContent = 'Chips reset ✓';
+      setTimeout(() => { btn.textContent = resetLabel; }, 2000);
+      refreshMenu();
     });
   }
 
@@ -921,6 +928,10 @@
     const tab = active ? active.dataset.tab : 'table';
     const id = tab === 'hands' ? 'view-hands' : G.app === 'blackjack' ? 'view-bj' : 'view-table';
     $$('.view').forEach((v) => v.classList.toggle('active', v.id === id));
+    const bj = G.app === 'blackjack';
+    $('#rules-poker').hidden = bj;
+    $('#rules-bj').hidden = !bj;
+    $('#rulesTab').textContent = bj ? '📖 Rules' : '📖 Hands';
   }
 
   function enterBlackjack(fresh) {
@@ -934,12 +945,31 @@
     window.BJ.enter(fresh);
   }
 
-  function enterPoker(mode) {
-    const go = () => {
-      const s = load();
-      startGame(mode, s && s.chips && s.chips[0] > 0 ? s : null);
-    };
-    if (!window.BJ.leave(go)) $('#bjMsg').textContent = `Switching to ${mode === 'holdem' ? "Hold'em" : 'Five Card Draw'} after this round`;
+  /** Menu button: leave the current game and go back to the main menu.
+   *  An unfinished poker hand or blackjack round is cancelled (chips go back to where they were before it). */
+  function goToMenu() {
+    if (G.app === 'poker' && G.pokerOn) {
+      abortAll();
+      G.pokerOn = false;
+      G.humanUI = null;
+      $('#actions').classList.add('off');
+    }
+    if (G.app === 'blackjack') window.BJ.abandon();
+    $$('.overlay').forEach((o) => o.classList.remove('show'));
+    refreshMenu();
+    $('#startScreen').classList.add('show');
+  }
+
+  function refreshMenu() {
+    const s = load();
+    const chips = s && s.chips && s.chips[0] > 0 ? s.chips[0] : null;
+    const opps = chips && s.opponents ? s.opponents.filter((o, i) => !(s.out && s.out[i + 1])).map((o) => o.name) : [];
+    const pokerSub = chips ? `Your chips: ${fmt(chips)}${opps.length ? ' · vs ' + opps.join(', ') : ''}` : null;
+    $('[data-sub="holdem"]').textContent = pokerSub || '2 private cards + 5 shared';
+    $('[data-sub="draw"]').textContent = pokerSub || '5 private cards, swap up to 3';
+    const bank = window.BJ.savedBank();
+    $('[data-sub="blackjack"]').textContent = bank ? `Your chips: ${fmt(bank)} · green table` : 'You vs the dealer on a green table';
+    syncMenu();
   }
 
   function appNotice(icon, title, text) {
@@ -954,8 +984,6 @@
   window.App = { get speed() { return G.speed; }, notice: appNotice };
 
   function syncMenu() {
-    const m = G.app === 'blackjack' ? 'blackjack' : (G.pendingApp || G.pendingMode || G.mode);
-    $$('[data-setmode]').forEach((b) => b.classList.toggle('on', b.dataset.setmode === m));
     $$('[data-speed]').forEach((b) => b.classList.toggle('on', +b.dataset.speed === G.speed));
   }
 
@@ -969,16 +997,9 @@
     G.players = makePlayers();
     $('#actions').classList.add('off');
     render();
-    const s = load();
-    if (s && s.speed) G.speed = s.speed;
-    const bank = window.BJ.savedBank();
-    if (getLast() === 'blackjack' && bank > 0) {
-      $('#continueBox').hidden = false;
-      $('#btnContinue').textContent = `Continue (Blackjack, you have ${fmt(bank)})`;
-    } else if (s && s.chips && s.chips[0] > 0) {
-      $('#continueBox').hidden = false;
-      $('#btnContinue').textContent = `Continue (${s.mode === 'draw' ? 'Five Card Draw' : "Hold'em"}, you have ${fmt(s.chips[0])})`;
-    }
+    try { const sp = +localStorage.getItem(SPEED_KEY); if (sp > 0) G.speed = sp; } catch (e) { /* ignore */ }
+    buildBjRules();
+    refreshMenu();
   }
 
   boot();

@@ -2,10 +2,10 @@
 
 A phone-first (portrait) card game app: poker against 3 computer players, or blackjack against the dealer. You start with $1,000.
 
-- **Three games:** Texas Hold'em, Five Card Draw (blue table) and Blackjack (green table). Pick one at the start or switch from the ☰ menu. A switch waits for the current hand or round to finish.
-- **Famous opponents:** every new poker game seats 3 random opponents from US presidents (Roosevelt, Truman, Reagan, both Bushes, Clinton), Soviet leaders (Gorbachev, Hrushchov), Hungarian leaders (Horthy, Rákosi, Kádár) and every Formula 1 World Champion. Hungarian names use Hungarian order ("Kádár J."), others are initial first ("R. Reagan").
+- **Three games:** Texas Hold'em, Five Card Draw (blue table) and Blackjack (green table). Pick one on the main menu; the **Menu** button (top right) always takes you back there. Leaving in the middle of a hand or round cancels it and gives back what you'd bet. Each game keeps its own chips.
+- **Famous opponents:** every new poker game seats 3 random opponents. The pool: US presidents (Roosevelt, Truman, Kennedy, Reagan, both Bushes, Clinton, Trump), Soviet and Russian leaders (Lenin, Hrushchov, Gorbachev, Putin), Xi Jinping, Kim Jong Un, Hungarian figures (Horthy, Rákosi, Kádár, Magyar Péter) and every Formula 1 World Champion. Hungarian, Chinese and Korean names are surname first ("Kádár J.", "Xi J.", "Kim J. U."), others initial first ("R. Reagan").
 - **Blackjack:** 6-deck shoe with a cut card, the dealer stands on all 17s, blackjack pays 3 to 2, double on any first two cards, split up to 4 hands. Every hand's result is explained.
-- **Hands tab:** every hand from Royal Flush down to High Card, with example cards, odds and tie-break rules.
+- **Rules tab:** shows only the game you're playing. Poker gets every hand from Royal Flush down to High Card, with example cards, odds and tie-break rules.
 - **Showdown explanations:** after every hand a results sheet shows each player's cards and best 5. It says who won and exactly why each other player lost: a lower hand type, a lower pair, or a kicker. The card that lost the tie-break is marked in red.
 - **Fair cards:** each hand uses a fresh 52-card deck shuffled with Fisher–Yates and the device's cryptographic RNG (`crypto.getRandomValues`, with rejection sampling so there is no modulo bias). Nothing is weighted. The computer players only see their own cards and the board.
 - **Busting:** if you run out of chips the game restarts with everyone back at $1,000. Opponents who go broke leave the table. Bust all three and a new game starts.
@@ -19,7 +19,7 @@ To run it locally: `python3 -m http.server` in this folder, then open `http://<y
 
 ## Android APK
 
-**Download:** [`BlueFeltPoker.apk`](BlueFeltPoker.apk) (version 1.1, Android 7.0+). On your phone, open the link, tap **Download raw file**, then open it to install. Allow "install unknown apps" if Android asks.
+**Download:** [`BlueFeltPoker.apk`](BlueFeltPoker.apk) (version 1.2, Android 7.0+). On your phone, open the link, tap **Download raw file**, then open it to install. Allow "install unknown apps" if Android asks.
 
 
 `poker/android/` wraps the game in a small native Android app: a full-screen WebView with the game files bundled inside, so it works offline and is locked to portrait. It runs on Android 7.0 and newer.

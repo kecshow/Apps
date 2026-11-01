@@ -84,14 +84,14 @@ const H = (str) => str.split(' ').map(c);
   const Names = require('../js/names.js');
   const names = Names.ALL.map((o) => o.name);
   ['Kádár J.', 'Rákosi M.', 'Horthy M.', 'F. Roosevelt', 'H. Truman', 'M. Gorbachev', 'N. Hrushchov', 'R. Reagan',
-   'G. H. W. Bush', 'G. W. Bush', 'B. Clinton', 'J. Fangio', 'M. Schumacher', 'L. Hamilton', 'M. Verstappen', 'L. Norris']
+   'G. H. W. Bush', 'G. W. Bush', 'B. Clinton', 'J. Kennedy', 'D. Trump', 'V. Putin', 'V. Lenin', 'Xi J.', 'Kim J. U.', 'Magyar P.', 'J. Fangio', 'M. Schumacher', 'L. Hamilton', 'M. Verstappen', 'L. Norris']
     .forEach((n) => assert(names.includes(n), 'missing ' + n));
   assert.strictEqual(new Set(names).size, names.length, 'duplicate names');
-  assert.strictEqual(Names.ALL.length, 11 + 35);
+  assert.strictEqual(Names.ALL.length, 18 + 35);
   for (let t = 0; t < 200; t++) {
     const p = Names.pick(3, E.randomInt);
     assert.strictEqual(new Set(p.map((o) => o.name)).size, 3);
   }
-  console.log(`✓ ${Names.ALL.length} opponents, Hungarian names surname-first, 3 distinct picks per game`);
+  console.log(`✓ ${Names.ALL.length} opponents, Hungarian/Chinese/Korean names surname-first, 3 distinct picks per game`);
 }
 console.log('All tests passed.');

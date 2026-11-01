@@ -19,9 +19,9 @@
   <header class="topbar">
     <nav class="tabs" role="tablist">
       <button class="tab active" data-tab="table" role="tab">🃏 Table</button>
-      <button class="tab" data-tab="hands" role="tab">📖 Hands</button>
+      <button class="tab" data-tab="hands" role="tab" id="rulesTab">📖 Hands</button>
     </nav>
-    <button id="menuBtn" class="icon-btn" aria-label="Menu">☰</button>
+    <button id="menuBtn" class="menu-btn">Menu</button>
   </header>
 
   <main>
@@ -143,99 +143,110 @@
       </div>
     </section>
 
-    <!-- ======================= HANDS VIEW ======================= -->
+    <!-- ======================= RULES VIEW ======================= -->
     <section id="view-hands" class="view">
       <div class="hands-scroll">
-        <h1>Poker Hand Rankings</h1>
-        <p class="lead">From strongest to weakest. A higher hand on this list always beats a lower one.
-          The same list is used in both Five Card Draw and Texas Hold'em.</p>
-        <div id="handsList"></div>
+        <!-- Poker rules (shown while playing Hold'em / Five Card Draw) -->
+        <div id="rules-poker">
+          <h1>Poker Hand Rankings</h1>
+          <p class="lead">From strongest to weakest. A higher hand on this list always beats a lower one.
+            The same list is used in both Five Card Draw and Texas Hold'em.</p>
+          <div id="handsList"></div>
 
-        <h2>When two players have the same kind of hand</h2>
-        <ul class="rules">
-          <li><b>Higher cards win.</b> A pair of Kings beats a pair of Nines. A Flush with an Ace beats a Flush topped by a King.</li>
-          <li><b>Kickers.</b> If the main part is equal (both have a pair of Jacks), the remaining cards are compared from highest down. That leftover card is called the <i>kicker</i>.</li>
-          <li><b>Full House:</b> the three-of-a-kind part is compared first, then the pair.</li>
-          <li><b>Two Pair:</b> top pair first, then the second pair, then the kicker.</li>
-          <li><b>Suits never matter.</b> ♠ ♥ ♦ ♣ are all equal. If hands are exactly equal, the pot is split.</li>
-          <li><b>A-2-3-4-5</b> is the lowest straight (a "wheel"). The Ace can be high or low, but you can't wrap around (Q-K-A-2-3 is not a straight).</li>
-        </ul>
+          <h2>When two players have the same kind of hand</h2>
+          <ul class="rules">
+            <li><b>Higher cards win.</b> A pair of Kings beats a pair of Nines. A Flush with an Ace beats a Flush topped by a King.</li>
+            <li><b>Kickers.</b> If the main part is equal (both have a pair of Jacks), the remaining cards are compared from highest down. That leftover card is called the <i>kicker</i>.</li>
+            <li><b>Full House:</b> the three-of-a-kind part is compared first, then the pair.</li>
+            <li><b>Two Pair:</b> top pair first, then the second pair, then the kicker.</li>
+            <li><b>Suits never matter.</b> ♠&#xFE0E; ♥&#xFE0E; ♦&#xFE0E; ♣&#xFE0E; are all equal. If hands are exactly equal, the pot is split.</li>
+            <li><b>A-2-3-4-5</b> is the lowest straight (a "wheel"). The Ace can be high or low, but you can't wrap around (Q-K-A-2-3 is not a straight).</li>
+          </ul>
 
-        <h2>The two games</h2>
-        <div class="game-card">
-          <h3>Five Card Draw</h3>
-          <p>Everyone gets 5 private cards. After a betting round, you may swap up to 3 cards (4 if you keep an Ace). Then there is one more betting round and a showdown. Your hand is just your 5 cards.</p>
+          <h2>The two games</h2>
+          <div class="game-card">
+            <h3>Five Card Draw</h3>
+            <p>Everyone gets 5 private cards. After a betting round, you may swap up to 3 cards (4 if you keep an Ace). Then there is one more betting round and a showdown. Your hand is just your 5 cards.</p>
+          </div>
+          <div class="game-card">
+            <h3>Texas Hold'em</h3>
+            <p>Everyone gets 2 private cards. Then 5 shared cards are dealt face up in the middle: the <i>flop</i> (3), the <i>turn</i> (1) and the <i>river</i> (1), with betting between each. Your hand is the best 5 cards from your 2 plus the 5 shared ones.</p>
+          </div>
+
+          <h2>Betting basics</h2>
+          <ul class="rules">
+            <li><b>Blinds:</b> the two players left of the dealer button (D) put in $10 and $20 before the cards come, so there's always something to play for.</li>
+            <li><b>Check:</b> pass without betting, only if nobody has bet yet. <b>Call:</b> match the current bet. <b>Raise:</b> bet more. <b>Fold:</b> give up your hand.</li>
+            <li><b>All-in:</b> if you bet all your chips, you can only win as much from each player as you put in yourself. Any extra goes to a <i>side pot</i>.</li>
+          </ul>
+
+          <h2>Fair shuffle</h2>
+          <p class="lead">Each hand starts from a fresh 52-card deck, shuffled with the Fisher–Yates method and your device's
+            cryptographic random number generator (the same kind used for security). Every possible order of the deck is equally likely,
+            just like a perfect real-life shuffle. Nothing is weighted, nobody gets "lucky streaks" on purpose,
+            and the computer players can't see your cards or the deck.</p>
         </div>
-        <div class="game-card">
-          <h3>Texas Hold'em</h3>
-          <p>Everyone gets 2 private cards. Then 5 shared cards are dealt face up in the middle: the <i>flop</i> (3), the <i>turn</i> (1) and the <i>river</i> (1), with betting between each. Your hand is the best 5 cards from your 2 plus the 5 shared ones.</p>
+
+        <!-- Blackjack rules (shown while playing Blackjack) -->
+        <div id="rules-bj" hidden>
+          <h1>Blackjack Rules</h1>
+          <p class="lead">Beat the dealer by getting closer to 21 than they do, without going over.</p>
+
+          <h2>What the cards are worth</h2>
+          <div id="bjValues"></div>
+
+          <h2>Examples</h2>
+          <div id="bjExamples"></div>
+
+          <h2>Your moves</h2>
+          <ul class="rules">
+            <li><b>Hit:</b> take another card.</li>
+            <li><b>Stand:</b> keep your total and end your turn.</li>
+            <li><b>Double:</b> on your first two cards only. Double your bet and take exactly one more card.</li>
+            <li><b>Split:</b> if your first two cards have the same value, split them into two separate hands, each with its own bet (up to 4 hands). Split Aces get one card each, and 21 after a split pays 1 to 1, not 3 to 2.</li>
+          </ul>
+
+          <h2>How the dealer plays</h2>
+          <ul class="rules">
+            <li>One of the dealer's cards stays face down until you finish.</li>
+            <li>With an Ace or a 10-value card showing, the dealer checks for Blackjack first. If they have it, the round ends at once.</li>
+            <li>The dealer has no choices: they must draw on 16 or less and stand on every 17, soft 17 included. That's the "Dealer must draw to 16 and stand on all 17's" printed on the table.</li>
+          </ul>
+
+          <h2>Payouts</h2>
+          <ul class="rules">
+            <li><b>Win:</b> 1 to 1 (bet $50, win $50).</li>
+            <li><b>Blackjack:</b> 3 to 2 (bet $50, win $75).</li>
+            <li><b>Push</b> (same total as the dealer): your bet comes back.</li>
+            <li><b>Bust</b> (over 21): you lose straight away, even if the dealer busts later.</li>
+          </ul>
+
+          <h2>Fair shuffle</h2>
+          <p class="lead">The dealer uses a 6-deck shoe (312 cards) shuffled with the Fisher–Yates method and your device's
+            cryptographic random number generator. Every order is equally likely and nothing is weighted. A cut card is placed 1 to 1.5 decks
+            from the back, and when it comes out a fresh shoe is shuffled, just like in a casino.</p>
         </div>
-
-        <h2>Betting basics</h2>
-        <ul class="rules">
-          <li><b>Blinds:</b> the two players left of the dealer button (D) put in $10 and $20 before the cards come, so there's always something to play for.</li>
-          <li><b>Check:</b> pass without betting, only if nobody has bet yet. <b>Call:</b> match the current bet. <b>Raise:</b> bet more. <b>Fold:</b> give up your hand.</li>
-          <li><b>All-in:</b> if you bet all your chips, you can only win as much from each player as you put in yourself. Any extra goes to a <i>side pot</i>.</li>
-        </ul>
-
-        <h2>Blackjack</h2>
-        <div class="game-card">
-          <p>Beat the dealer by getting closer to 21 without going over. Cards 2–10 count as their number, J, Q and K count as 10, and an Ace counts as 11 or 1, whichever helps you.</p>
-        </div>
-        <ul class="rules">
-          <li><b>Blackjack:</b> an Ace plus a 10-value card as your first two cards. It pays 3 to 2 (bet $10, win $15).</li>
-          <li><b>Hit</b> takes another card. <b>Stand</b> keeps your total. Go over 21 and you <b>bust</b>: you lose straight away, even if the dealer busts later.</li>
-          <li><b>Double:</b> on your first two cards, double your bet and take exactly one more card.</li>
-          <li><b>Split:</b> two cards of the same value become two separate hands, each with its own bet (up to 4 hands). Split Aces get one card each, and 21 after a split pays 1 to 1, not 3 to 2.</li>
-          <li><b>Dealer:</b> one card stays face down. With an Ace or a 10 showing, the dealer checks for Blackjack first. The dealer must draw to 16 and stand on all 17s, with no choices.</li>
-          <li><b>Soft hand:</b> a hand where an Ace is counted as 11 ("Soft 17" = Ace + 6). It can't bust on the next card.</li>
-          <li><b>Push:</b> same total as the dealer. Your bet comes back.</li>
-          <li><b>The shoe:</b> 6 decks shuffled together. When the cut card comes out, the dealer shuffles a fresh shoe.</li>
-        </ul>
-
-        <h2>Fair shuffle</h2>
-        <p class="lead">Each hand starts from a fresh 52-card deck, shuffled with the Fisher–Yates method and your device's
-          cryptographic random number generator (the same kind used for security). Every possible order of the deck is equally likely,
-          just like a perfect real-life shuffle. Nothing is weighted, nobody gets "lucky streaks" on purpose,
-          and the computer players can't see your cards or the deck. Blackjack uses a 6-deck shoe shuffled the same way, with a fresh shuffle whenever the cut card comes out.</p>
         <div class="spacer"></div>
       </div>
     </section>
   </main>
 
-  <!-- ======================= OVERLAYS ======================= -->
+  <!-- ======================= MAIN MENU ======================= -->
   <div id="startScreen" class="overlay show">
     <div class="sheet start">
       <div class="logo">♠&#xFE0E; ♥&#xFE0E; ♣&#xFE0E; ♦&#xFE0E;</div>
       <h1>Blue Felt Poker</h1>
-      <p>Poker vs 3 famous opponents, or Blackjack · Start with $1,000</p>
-      <div id="continueBox" hidden>
-        <button class="big-btn primary" id="btnContinue">Continue</button>
-        <div class="or">or start a new game</div>
-      </div>
-      <button class="big-btn mode-btn" data-mode="holdem"><b>Texas Hold'em</b><span>2 private cards + 5 shared</span></button>
-      <button class="big-btn mode-btn" data-mode="draw"><b>Five Card Draw</b><span>5 private cards, swap up to 3</span></button>
-      <button class="big-btn mode-btn bj" data-mode="blackjack"><b>Blackjack</b><span>You vs the dealer on a green table</span></button>
-    </div>
-  </div>
-
-  <div id="menu" class="overlay">
-    <div class="sheet">
-      <h2>Menu</h2>
-      <p class="hint">Game (switches after the current hand, chips are kept):</p>
-      <div class="seg">
-        <button class="seg-btn" data-setmode="holdem">Hold'em</button>
-        <button class="seg-btn" data-setmode="draw">5-Card Draw</button>
-        <button class="seg-btn" data-setmode="blackjack">Blackjack</button>
-      </div>
-      <p class="hint">Speed:</p>
+      <p>Choose a game. Your chips are kept for each one.</p>
+      <button class="big-btn mode-btn" data-mode="holdem"><b>Texas Hold'em</b><span class="mode-sub" data-sub="holdem">2 private cards + 5 shared</span></button>
+      <button class="big-btn mode-btn" data-mode="draw"><b>Five Card Draw</b><span class="mode-sub" data-sub="draw">5 private cards, swap up to 3</span></button>
+      <button class="big-btn mode-btn bj" data-mode="blackjack"><b>Blackjack</b><span class="mode-sub" data-sub="blackjack">You vs the dealer on a green table</span></button>
+      <p class="hint">Speed</p>
       <div class="seg">
         <button class="seg-btn" data-speed="1.6">Slow</button>
         <button class="seg-btn" data-speed="1">Normal</button>
         <button class="seg-btn" data-speed="0.5">Fast</button>
       </div>
-      <button class="big-btn danger" id="btnRestart">Restart game (back to $1,000)</button>
-      <button class="big-btn" id="btnCloseMenu">Close</button>
+      <button class="big-btn danger small" id="btnRestart">Reset all chips to $1,000</button>
     </div>
   </div>
 

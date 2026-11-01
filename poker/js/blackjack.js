@@ -14,7 +14,7 @@
 
   const B = {
     bank: START, bet: 0, lastBet: 50, shoe: [], cutLeft: 0, dealer: [], hands: [], active: -1,
-    phase: 'betting', holeHidden: true, seen: new Set(), acting: false, pendingLeave: null, msg: '',
+    phase: 'betting', holeHidden: true, seen: new Set(), acting: false, pendingLeave: null, msg: '', gen: 0,
   };
 
   // ---------------------------------------------------------------------------
@@ -67,13 +67,14 @@
   }
 
   async function deal() {
+    const g = B.gen;
     if (B.phase !== 'betting' || B.bet < MIN_BET || B.bet > B.bank) return;
     B.phase = 'dealing';
     if (B.shoe.length < B.cutLeft) {
       setMsg('Cut card reached: shuffling a fresh 6-deck shoe…');
       newShoe();
       render();
-      await sleep(1100);
+      await sleep(1100); if (g !== B.gen) return;
     }
     B.bank -= B.bet;
     B.lastBet = B.bet;
@@ -84,10 +85,10 @@
     setMsg('Dealing…');
     render();
     for (let k = 0; k < 2; k++) {
-      await sleep(300);
+      await sleep(300); if (g !== B.gen) return;
       B.hands[0].cards.push(draw());
       render();
-      await sleep(300);
+      await sleep(300); if (g !== B.gen) return;
       B.dealer.push(draw());
       render();
     }
@@ -95,12 +96,12 @@
     const peek = up.r === 14 || cardVal(up) === 10;
     if (peek) {
       setMsg('Dealer checks for Blackjack…');
-      await sleep(800);
+      await sleep(800); if (g !== B.gen) return;
     }
     if ((peek && isBJ(B.dealer)) || isBJ(B.hands[0].cards)) {
       B.holeHidden = false;
       render();
-      await sleep(600);
+      await sleep(600); if (g !== B.gen) return;
       settle();
       return;
     }
@@ -119,6 +120,7 @@
     && B.hands.length < 4 && B.bank >= h.bet;
 
   async function act(type) {
+    const g = B.gen;
     if (B.phase !== 'playing' || B.acting) return;
     const h = B.hands[B.active];
     if (!h) return;
@@ -146,10 +148,10 @@
       h.fromSplit = nh.fromSplit = true;
       B.hands.splice(B.active + 1, 0, nh);
       render();
-      await sleep(300);
+      await sleep(300); if (g !== B.gen) return;
       h.cards.push(draw());
       render();
-      await sleep(300);
+      await sleep(300); if (g !== B.gen) return;
       nh.cards.push(draw());
       if (second.r === 14) {
         h.splitAces = nh.splitAces = true;
@@ -160,7 +162,7 @@
       }
     }
     render();
-    await sleep(350);
+    await sleep(350); if (g !== B.gen) return;
     await advance();
     B.acting = false;
     render();
@@ -176,24 +178,25 @@
   }
 
   async function dealerPlay() {
+    const g = B.gen;
     B.phase = 'dealer';
     B.active = -1;
     B.holeHidden = false;
     setMsg('Dealer reveals the hidden card');
     render();
-    await sleep(750);
+    await sleep(750); if (g !== B.gen) return;
     const anyAlive = B.hands.some((h) => value(h.cards).total <= 21);
     if (anyAlive) {
       while (value(B.dealer).total < 17) {
         setMsg(`Dealer has ${value(B.dealer).total}: must draw`);
         B.dealer.push(draw());
         render();
-        await sleep(750);
+        await sleep(750); if (g !== B.gen) return;
       }
       const d = value(B.dealer).total;
       setMsg(d > 21 ? `Dealer busts with ${d}!` : `Dealer stands on ${d}`);
     }
-    await sleep(400);
+    await sleep(400); if (g !== B.gen) return;
     settle();
   }
 
@@ -361,6 +364,7 @@
       if (fresh) { B.bank = START; B.lastBet = 50; save(); }
       if (!B.shoe.length) newShoe();
       if (B.bank < MIN_BET) { B.bank = START; save(); }
+      save();
       if (B.phase === 'betting' || B.phase === 'done' || !B.hands.length) toBetting();
       else render();
     },
@@ -371,6 +375,18 @@
       if (B.phase === 'done') render();
       return false;
     },
+    /** Leave mid-round (Menu button): the round is cancelled and its bets refunded. */
+    abandon() {
+      B.gen++;
+      B.acting = false;
+      B.pendingLeave = null;
+      if (B.phase !== 'betting' && B.phase !== 'done') {
+        const s = load();
+        B.bank = s ? s.bank : START; // bank as saved before this round started
+      }
+      toBetting();
+    },
+    resetBank() { B.gen++; B.bank = START; B.lastBet = 50; B.acting = false; newShoe(); save(); toBetting(); },
     restart() {
       if (B.phase !== 'betting' && B.phase !== 'done') { setMsg('Finish this round first, then restart'); return; }
       B.bank = START; B.lastBet = 50; newShoe(); save(); toBetting();

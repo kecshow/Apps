@@ -1,12 +1,12 @@
 /*
  * Poker opponents. A new random three are seated for every new game.
- * Hungarian names use Hungarian order (surname first, then initial: "Kádár J.");
- * everyone else is written initial first ("R. Reagan").
+ * Hungarian, Chinese and Korean names use their native order (surname first, then initials:
+ * "Kádár J.", "Xi J.", "Kim J. U."); everyone else is written initial first ("R. Reagan").
  */
 (function (root) {
   'use strict';
 
-  // [first name(s), surname, flag, hungarian?, tag]
+  // [first name(s), surname, flag, surname-first?, tag]
   const POLITICIANS = [
     ['Franklin D.', 'Roosevelt', '🇺🇸', false, 'US President'],
     ['Harry S.', 'Truman', '🇺🇸', false, 'US President'],
@@ -16,9 +16,16 @@
     ['George H. W.', 'Bush', '🇺🇸', false, 'US President'],
     ['George W.', 'Bush', '🇺🇸', false, 'US President'],
     ['Bill', 'Clinton', '🇺🇸', false, 'US President'],
+    ['John F.', 'Kennedy', '🇺🇸', false, 'US President'],
+    ['Donald', 'Trump', '🇺🇸', false, 'US President'],
+    ['Vladimir', 'Putin', '🇷🇺', false, 'Russian President'],
+    ['Vladimir', 'Lenin', '🇷🇺', false, 'Soviet leader'],
+    ['Jinping', 'Xi', '🇨🇳', true, 'Chinese leader'],
+    ['Jong Un', 'Kim', '🇰🇵', true, 'North Korean leader'],
     ['Miklós', 'Horthy', '🇭🇺', true, 'Regent of Hungary'],
     ['Mátyás', 'Rákosi', '🇭🇺', true, 'Hungarian leader'],
     ['János', 'Kádár', '🇭🇺', true, 'Hungarian leader'],
+    ['Péter', 'Magyar', '🇭🇺', true, 'Hungarian politician'],
   ];
 
   // Every Formula 1 World Drivers' Champion (first title year), up to the reigning champion.
@@ -39,9 +46,9 @@
 
   const initials = (first) => first.split(' ').map((w) => w[0] + '.').join(' ');
 
-  /** "Kádár J." for Hungarians, "R. Reagan" otherwise. Middle initials only kept for the two Bushes. */
-  function shortName(first, last, hungarian) {
-    if (hungarian) return `${last} ${first[0]}.`;
+  /** "Kádár J." / "Kim J. U." for surname-first names, "R. Reagan" otherwise. Middle initials only kept for the two Bushes. */
+  function shortName(first, last, surnameFirst) {
+    if (surnameFirst) return `${last} ${initials(first)}`;
     const ini = last === 'Bush' ? initials(first) : first[0] + '.';
     return `${ini} ${last}`;
   }
