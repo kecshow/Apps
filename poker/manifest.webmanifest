@@ -1,0 +1,10 @@
+{
+  "name": "Blue Felt Poker",
+  "short_name": "Poker",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07121f",
+  "theme_color": "#0b1d33",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}
