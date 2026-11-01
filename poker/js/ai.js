@@ -99,9 +99,9 @@
   }
 
   const PROFILES = [
-    { name: 'Viktor', avatar: '🦊', aggr: 0.75, tight: 0.15, style: 'Aggressive' },
-    { name: 'Maya', avatar: '🦉', aggr: 0.35, tight: 0.6, style: 'Careful' },
-    { name: 'Big Sam', avatar: '🐻', aggr: 0.55, tight: 0.35, style: 'Balanced' },
+    { aggr: 0.75, tight: 0.15, style: 'Aggressive' },
+    { aggr: 0.35, tight: 0.6, style: 'Careful' },
+    { aggr: 0.55, tight: 0.35, style: 'Balanced' },
   ];
 
   /**

@@ -19,7 +19,9 @@
     revealed: false, seen: new Set(), drawSel: new Set(), gen: 0,
     humanDone: null, drawDone: null, nextDone: null, noticeDone: null,
     humanUI: null, lastResult: null,
+    app: 'poker', pendingApp: null, pokerOn: false,
   };
+  const LAST_KEY = 'bluefelt-last-game';
 
   // ---------------------------------------------------------------------------
   // Abortable waiting (so "Restart" can cancel a hand in progress)
@@ -48,21 +50,26 @@
   // ---------------------------------------------------------------------------
   // Players & persistence
   // ---------------------------------------------------------------------------
-  function makePlayers() {
+  /** Three random opponents from the pool, each with a random playing style. `saved` restores a previous seating. */
+  function makePlayers(saved) {
+    const opps = saved || window.Names.pick(3, E.randomInt);
+    const styles = E.shuffle(AI.PROFILES.slice());
     const list = [{ id: 0, name: 'You', avatar: '😎', isHuman: true }].concat(
-      AI.PROFILES.map((p, i) => ({ id: i + 1, name: p.name, avatar: p.avatar, prof: p }))
+      opps.map((o, i) => ({ id: i + 1, name: o.name, avatar: o.flag, tag: o.tag, prof: styles[i] }))
     );
     return list.map((p) => Object.assign(p, {
       chips: START, out: false, hand: [], folded: false, allIn: false, bet: 0, contributed: 0,
       lastAction: '', foldedAt: null, best: null, won: 0,
     }));
   }
+  const opponentsOf = (players) => players.slice(1).map((p) => ({ name: p.name, flag: p.avatar, tag: p.tag }));
 
   function save() {
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify({
         mode: G.pendingMode || G.mode, dealer: G.dealer, speed: G.speed,
         chips: G.players.map((p) => p.chips), out: G.players.map((p) => p.out),
+        opponents: opponentsOf(G.players),
       }));
     } catch (e) { /* private mode etc. */ }
   }
@@ -86,13 +93,18 @@
   // ---------------------------------------------------------------------------
   function startGame(mode, saved) {
     abortAll();
+    G.app = 'poker';
+    G.pokerOn = true;
+    G.pendingApp = null;
+    setLast(mode);
+    showTable();
     G.mode = mode;
     G.pendingMode = null;
-    G.players = makePlayers();
+    G.players = makePlayers(saved && saved.opponents);
     G.dealer = E.randomInt(4);
     G.handNo = 0;
     if (saved && saved.chips) {
-      G.players.forEach((p, i) => { p.chips = saved.chips[i]; p.out = !!saved.out[i]; });
+      G.players.forEach((p, i) => { p.chips = saved.chips[i]; p.out = !!saved.out[i] || (!p.isHuman && p.chips <= 0); });
       G.dealer = saved.dealer >= 0 ? saved.dealer : G.dealer;
     }
     $$('.overlay').forEach((o) => o.classList.remove('show'));
@@ -105,6 +117,7 @@
   async function gameLoop() {
     try {
       for (;;) {
+        if (G.pendingApp === 'blackjack') { enterBlackjack(false); return; }
         await playHand();
         await afterHand();
       }
@@ -113,8 +126,11 @@
     }
   }
 
+  /** New game: everyone back to $1,000 and three new random opponents sit down. */
   function resetChips() {
-    G.players.forEach((p) => { p.chips = START; p.out = false; });
+    G.players = makePlayers();
+    G.dealer = E.randomInt(4);
+    G.handNo = 0;
   }
 
   async function playHand() {
@@ -445,13 +461,13 @@
     $('#result').classList.remove('show');
     const me = G.players[0];
     if (me.chips <= 0) {
-      await notice('💸', 'Out of chips!', 'You ran out of chips, so the game starts over. Everyone is back to $1,000.');
+      await notice('💸', 'Out of chips!', 'You ran out of chips, so the game starts over: everyone is back to $1,000 and 3 new opponents sit down.');
       resetChips();
     } else {
       const busted = G.players.filter((p) => !p.isHuman && !p.out && p.chips <= 0);
       busted.forEach((p) => { p.out = true; });
       if (G.players.every((p) => p.isHuman || p.out)) {
-        await notice('🏆', 'You cleaned out the table!', 'All 3 opponents are broke. A new game starts, everyone back to $1,000.');
+        await notice('🏆', 'You cleaned out the table!', 'All 3 opponents are broke. A new game starts with 3 new opponents, everyone back to $1,000.');
         resetChips();
       } else if (busted.length) {
         const names = busted.map((p) => p.name).join(' and ');
@@ -790,7 +806,7 @@
   function wire() {
     $$('.tab').forEach((t) => t.addEventListener('click', () => {
       $$('.tab').forEach((x) => x.classList.toggle('active', x === t));
-      $$('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + t.dataset.tab));
+      showTable();
     }));
 
     $('#btnFold').addEventListener('click', () => resolveHuman({ type: 'fold' }));
@@ -839,12 +855,15 @@
 
     // Start screen
     $$('.mode-btn').forEach((b) => b.addEventListener('click', () => {
+      if (b.dataset.mode === 'blackjack') { enterBlackjack(true); return; }
       try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* ignore */ }
       startGame(b.dataset.mode, null);
     }));
     $('#btnContinue').addEventListener('click', () => {
       const s = load();
-      if (s) { G.speed = s.speed || 1; startGame(s.mode || 'holdem', s); }
+      if (s) G.speed = s.speed || 1;
+      if (getLast() === 'blackjack') { enterBlackjack(false); return; }
+      if (s) startGame(s.mode || 'holdem', s);
     });
 
     // Menu
@@ -853,6 +872,25 @@
     $('#menu').addEventListener('click', (e) => { if (e.target.id === 'menu') $('#menu').classList.remove('show'); });
     $$('[data-setmode]').forEach((b) => b.addEventListener('click', () => {
       const m = b.dataset.setmode;
+      if (m === 'blackjack') {
+        if (G.app === 'blackjack') { syncMenu(); return; }
+        if (pokerHandInProgress()) {
+          G.pendingApp = 'blackjack';
+          G.pendingMode = null;
+          setMsg('Switching to Blackjack after this hand');
+        } else {
+          $('#menu').classList.remove('show');
+          enterBlackjack(false);
+        }
+        syncMenu();
+        return;
+      }
+      if (G.app === 'blackjack') {
+        $('#menu').classList.remove('show');
+        enterPoker(m);
+        return;
+      }
+      G.pendingApp = null;
       G.pendingMode = m === G.mode ? null : m;
       if (!G.players.length || !G.players[0].hand.length) { G.mode = m; G.pendingMode = null; updateFelt(); render(); }
       save();
@@ -862,12 +900,61 @@
     $$('[data-speed]').forEach((b) => b.addEventListener('click', () => { G.speed = +b.dataset.speed; save(); syncMenu(); }));
     $('#btnRestart').addEventListener('click', () => {
       $('#menu').classList.remove('show');
+      if (G.app === 'blackjack') { window.BJ.restart(); return; }
       startGame(G.pendingMode || G.mode, null);
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // Switching between poker and blackjack
+  // ---------------------------------------------------------------------------
+  function setLast(m) { try { localStorage.setItem(LAST_KEY, m); } catch (e) { /* ignore */ } }
+  function getLast() { try { return localStorage.getItem(LAST_KEY); } catch (e) { return null; } }
+
+  /** True while cards are out in a poker hand (chips would be lost by leaving). */
+  function pokerHandInProgress() {
+    return G.pokerOn && G.players.some((p) => p.hand.length) && !G.lastResult;
+  }
+
+  function showTable() {
+    const active = $('.tab.active');
+    const tab = active ? active.dataset.tab : 'table';
+    const id = tab === 'hands' ? 'view-hands' : G.app === 'blackjack' ? 'view-bj' : 'view-table';
+    $$('.view').forEach((v) => v.classList.toggle('active', v.id === id));
+  }
+
+  function enterBlackjack(fresh) {
+    abortAll(); // poker is between hands here; chips were saved when the last hand ended
+    G.pokerOn = false;
+    G.pendingApp = null;
+    G.app = 'blackjack';
+    setLast('blackjack');
+    $$('.overlay').forEach((o) => o.classList.remove('show'));
+    showTable();
+    window.BJ.enter(fresh);
+  }
+
+  function enterPoker(mode) {
+    const go = () => {
+      const s = load();
+      startGame(mode, s && s.chips && s.chips[0] > 0 ? s : null);
+    };
+    if (!window.BJ.leave(go)) $('#bjMsg').textContent = `Switching to ${mode === 'holdem' ? "Hold'em" : 'Five Card Draw'} after this round`;
+  }
+
+  function appNotice(icon, title, text) {
+    $('#noticeIcon').textContent = icon;
+    $('#noticeTitle').textContent = title;
+    $('#noticeText').textContent = text;
+    $('#notice').classList.add('show');
+    return new Promise((res) => { G.noticeDone = () => { $('#notice').classList.remove('show'); res(); }; });
+  }
+
+  window.CardUI = { cardHTML: (c, cls) => cardHTML(c, cls) };
+  window.App = { get speed() { return G.speed; }, notice: appNotice };
+
   function syncMenu() {
-    const m = G.pendingMode || G.mode;
+    const m = G.app === 'blackjack' ? 'blackjack' : (G.pendingApp || G.pendingMode || G.mode);
     $$('[data-setmode]').forEach((b) => b.classList.toggle('on', b.dataset.setmode === m));
     $$('[data-speed]').forEach((b) => b.classList.toggle('on', +b.dataset.speed === G.speed));
   }
@@ -878,11 +965,17 @@
   function boot() {
     buildHandsTab();
     wire();
+    window.BJ.init();
     G.players = makePlayers();
     $('#actions').classList.add('off');
     render();
     const s = load();
-    if (s && s.chips && s.chips[0] > 0) {
+    if (s && s.speed) G.speed = s.speed;
+    const bank = window.BJ.savedBank();
+    if (getLast() === 'blackjack' && bank > 0) {
+      $('#continueBox').hidden = false;
+      $('#btnContinue').textContent = `Continue (Blackjack, you have ${fmt(bank)})`;
+    } else if (s && s.chips && s.chips[0] > 0) {
       $('#continueBox').hidden = false;
       $('#btnContinue').textContent = `Continue (${s.mode === 'draw' ? 'Five Card Draw' : "Hold'em"}, you have ${fmt(s.chips[0])})`;
     }
