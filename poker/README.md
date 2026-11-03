@@ -1,4 +1,4 @@
-# Blue Felt Poker
+# Playing Cards
 
 A phone-first (portrait) card game app: poker against 3 computer players, or blackjack against the dealer. You start with $1,000.
 
@@ -19,13 +19,13 @@ To run it locally: `python3 -m http.server` in this folder, then open `http://<y
 
 ## Android APK
 
-**Download:** [`BlueFeltPoker.apk`](BlueFeltPoker.apk) (version 1.2, Android 7.0+). On your phone, open the link, tap **Download raw file**, then open it to install. Allow "install unknown apps" if Android asks.
+**Download:** [`PlayingCards.apk`](https://raw.githubusercontent.com/kecshow/Apps/main/poker/PlayingCards.apk) (version 1.3, Android 7.0+). Open the link in Chrome on your phone and the download starts, then open the file to install. Allow "install unknown apps" if Android asks.
 
 
 `poker/android/` wraps the game in a small native Android app: a full-screen WebView with the game files bundled inside, so it works offline and is locked to portrait. It runs on Android 7.0 and newer.
 
 ```
-poker/android/build-apk.sh   # -> poker/android/build/BlueFeltPoker.apk
+poker/android/build-apk.sh   # -> poker/android/build/PlayingCards.apk
 ```
 
 You don't need Android Studio or the Android SDK. The script downloads `aapt2`, the Android API stubs, `dx` and `apksig` from Maven Central into `poker/android/.tools/`. You do need Java 17+, python3, curl and zip. The first build creates a signing key at `poker/android/release.p12`, which is not committed. Keep it: an update only installs over an existing install if it is signed with the same key. You can point the script at your own key with `KEYSTORE=... KEYSTORE_PASS=...`.

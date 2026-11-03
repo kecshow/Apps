@@ -1,5 +1,5 @@
 # Apps
 
-- [poker/](poker/): Blue Felt Poker, a portrait mobile poker game (Texas Hold'em and Five Card Draw).
+- [poker/](poker/): Playing Cards, a portrait mobile card game app (Texas Hold'em, Five Card Draw and Blackjack).
 
-**Android app:** [download BlueFeltPoker.apk](poker/BlueFeltPoker.apk)
+**Android app:** [download PlayingCards.apk](https://raw.githubusercontent.com/kecshow/Apps/main/poker/PlayingCards.apk)

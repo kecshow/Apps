@@ -1,4 +1,4 @@
-/* Blue Felt Poker: game flow + UI */
+/* Playing Cards: game flow + UI */
 (function () {
   'use strict';
   const E = window.Engine;
@@ -709,16 +709,15 @@
       el.innerHTML = `
         <div class="avatar">${p.avatar}${G.dealer === i ? '<div class="dealer-btn">D</div>' : ''}${p.out ? '<div class="status fold">Busted</div>' : statusHTML(p)}</div>
         <div class="plate"><div class="nm">${p.name}</div><div class="ch">${fmt(p.chips)}</div></div>
-        <div class="seat-cards">${cards}</div>`;
-
-      const bet = $('#bet-' + i);
-      if (p.bet > 0) {
-        bet.innerHTML = `<span class="chip-ico"></span>${fmt(p.bet)}`;
-        bet.classList.add('show');
-      } else {
-        bet.classList.remove('show');
-      }
+        <div class="seat-cards">${cards}</div>
+        ${!p.isHuman && p.bet > 0 ? `<div class="bet"><span class="chip-ico"></span>${fmt(p.bet)}</div>` : ''}`;
     }
+
+    // Your bet in this betting round: always shown
+    const me0 = G.players[0];
+    const myBet = me0 ? me0.bet : 0;
+    $('#myBetAmt').textContent = `Your bet ${fmt(myBet)}`;
+    $('#myBet').classList.toggle('has-bet', myBet > 0);
 
     // Pot & board
     const pot = potTotal();

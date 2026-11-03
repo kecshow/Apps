@@ -62,7 +62,7 @@ main { flex: 1; min-height: 0; position: relative; }
   box-shadow: 0 18px 40px rgba(0,0,0,.6), inset 0 2px 3px rgba(255,255,255,.18), inset 0 -4px 10px rgba(0,0,0,.6);
 }
 .felt {
-  position: absolute; inset: 16px; border-radius: 50%; overflow: hidden;
+  position: absolute; inset: 16px; border-radius: 50%; overflow: hidden; container-type: size;
   background:
     radial-gradient(ellipse at 50% 45%, var(--felt1) 0%, var(--felt2) 55%, var(--felt3) 100%);
   box-shadow: inset 0 0 40px rgba(0,0,0,.55), inset 0 0 0 3px rgba(0,0,0,.25), 0 0 0 2px #5b4026;
@@ -75,28 +75,50 @@ main { flex: 1; min-height: 0; position: relative; }
     repeating-linear-gradient(45deg, rgba(0,0,0,.08) 0 1px, transparent 1px 4px);
 }
 .felt-line { position: absolute; inset: 9%; border-radius: 50%; border: 2px solid var(--gold-dim); opacity: .55; pointer-events: none; }
+/* Same proportions as the SVG viewBox (300 x 460), centred in the felt. Positions inside it are in
+   viewBox units / 460 (vertical) so they line up with the printed text on every screen. */
+.felt-box {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 100%; height: 100%;
+  width: min(100cqw, 100cqh * 300 / 460);
+  height: min(100cqh, 100cqw * 460 / 300);
+}
 .felt-text { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .felt-title { fill: var(--gold); font-weight: 800; font-size: 25px; letter-spacing: 3px; opacity: .85; font-family: Georgia, "Times New Roman", serif; }
 .felt-suits { fill: rgba(255,255,255,.33); font-size: 20px; letter-spacing: 6px; }
 .felt-sub { fill: rgba(242,199,92,.6); font-weight: 700; font-size: 13px; letter-spacing: 3px; }
 .felt-small { fill: rgba(255,255,255,.35); font-size: 8.5px; letter-spacing: 1.5px; font-weight: 600; }
 
-.center {
-  position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-}
+/* Pot: in the gap between the curved title and the four suit symbols (y ≈ 127 of 460) */
 .pot {
-  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px;
-  background: rgba(0, 20, 45, .55); border-radius: 999px; font-weight: 800; font-size: 15px;
+  position: absolute; left: 50%; top: 27.6%; transform: translate(-50%, -50%); z-index: 2; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px 2px 4px;
+  background: rgba(0, 20, 45, .6); border-radius: 999px; font-weight: 800; font-size: 14px; font-size: clamp(8px, 3.4cqh, 15px);
   box-shadow: inset 0 0 0 1px rgba(242,199,92,.4);
 }
+.pot .chip-ico { width: 1.15em; height: 1.15em; }
+/* Your bet: always shown, between "NO LIMIT" and "DEALER BURNS…" (y ≈ 366 of 460) */
+.my-bet {
+  position: absolute; left: 50%; top: 79.6%; transform: translate(-50%, -50%); z-index: 2; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 10px 2px 3px; border-radius: 999px;
+  background: rgba(0, 0, 0, .4); font-weight: 800; font-size: 13px; font-size: clamp(8px, 3cqh, 13.5px);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.15);
+}
+.my-bet .chip-ico { width: 1.2em; height: 1.2em; }
+.my-bet.has-bet { box-shadow: inset 0 0 0 1px rgba(242,199,92,.6); color: var(--gold); }
 .pot.empty { opacity: 0; }
 .chip-ico {
   width: 18px; height: 18px; border-radius: 50%;
   background: repeating-conic-gradient(var(--red) 0 30deg, #fff 30deg 60deg);
   box-shadow: inset 0 0 0 4px var(--red), 0 1px 2px rgba(0,0,0,.5);
 }
-.board { display: flex; gap: 4px; --w: min(11.2vw, 50px); min-height: calc(var(--w) * 1.4); }
+/* Board: between the suit symbols and the "POKER · NO LIMIT · POKER" arc (centre y ≈ 212 of 460) */
+.board {
+  position: absolute; left: 50%; top: 46.1%; transform: translate(-50%, -50%); z-index: 1;
+  display: flex; gap: 4px; min-height: calc(var(--w) * 1.4);
+  --w: min(11.2vw, 50px);
+  --w: min(11.2vw, 50px, 12cqh, 18.5cqw);
+}
 .slot {
   width: var(--w); height: calc(var(--w) * 1.4); border-radius: calc(var(--w) * .1);
   border: 1.5px dashed rgba(255,255,255,.25);
@@ -141,19 +163,16 @@ main { flex: 1; min-height: 0; position: relative; }
 .seat-cards .card + .card { margin-left: calc(var(--w) * -0.45); }
 .seat[data-pos="bottom"] .seat-cards { display: none; }
 
-/* ---------------- Bets in front of seats ---------------- */
+/* ---------------- Opponents' bets: next to each player, away from the board ---------------- */
 .bet {
-  position: absolute; z-index: 2; display: none; align-items: center; gap: 4px; font-weight: 800; font-size: 13px;
-  padding: 2px 8px 2px 3px; border-radius: 999px; background: rgba(0,0,0,.35);
+  display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 13px; white-space: nowrap;
+  padding: 2px 8px 2px 3px; border-radius: 999px; background: rgba(0,0,0,.55); margin-top: 4px;
+  box-shadow: inset 0 0 0 1px rgba(242,199,92,.45); animation: pop .25s ease-out;
 }
-.bet.show { display: inline-flex; animation: pop .25s ease-out; }
-.bet[data-pos="bottom"] { left: 50%; bottom: 23%; transform: translateX(-50%); }
-.bet[data-pos="top"] { left: 50%; top: 21%; transform: translateX(-50%); }
-.bet[data-pos="left"] { left: 13%; top: 61%; }
-.bet[data-pos="right"] { right: 13%; top: 61%; }
 .bet .chip-ico { width: 16px; height: 16px; }
-@keyframes pop { from { transform: scale(.4) translateX(0); opacity: 0; } }
-.bet[data-pos="bottom"].show, .bet[data-pos="top"].show { animation: none; }
+/* top player: under their cards, to the right of the avatar (clear of the printed title) */
+.seat[data-pos="top"] .bet { position: absolute; left: calc(100% + 8px); top: 60px; margin: 0; }
+@keyframes pop { from { transform: scale(.4); opacity: 0; } }
 
 /* ---------------- Cards ---------------- */
 .card {
@@ -324,7 +343,7 @@ input[type=range] { width: 100%; accent-color: var(--gold); height: 26px; margin
   .act { padding: 11px 4px; }
   .preset { padding: 5px 0; }
   .avatar { width: 40px; height: 40px; font-size: 22px; }
-  .board { --w: min(10.4vw, 44px); }
+  .board { --w: min(10.4vw, 44px); --w: min(10.4vw, 44px, 12cqh, 18.5cqw); }
 }
 
 /* ---------------- Layout fixes ---------------- */

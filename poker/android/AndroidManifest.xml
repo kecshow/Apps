@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.kecshow.bluefeltpoker">
     <application
-        android:label="Blue Felt Poker"
+        android:label="Playing Cards"
         android:icon="@mipmap/ic_launcher"
         android:theme="@style/AppTheme"
         android:allowBackup="true"

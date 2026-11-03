@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds poker/android/build/BlueFeltPoker.apk without Android Studio or the Android SDK.
+# Builds poker/android/build/PlayingCards.apk without Android Studio or the Android SDK.
 # Needs: Java 17+ (javac, keytool), python3, curl, zip. Tools come from Maven Central and are cached in .tools/.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -26,8 +26,8 @@ fi
 AAPT2=$T/prebuilt/linux/aapt2
 FRAMEWORK=$T/prebuilt/android-framework.jar
 
-VERSION_CODE=${VERSION_CODE:-3}
-VERSION_NAME=${VERSION_NAME:-1.2}
+VERSION_CODE=${VERSION_CODE:-4}
+VERSION_NAME=${VERSION_NAME:-1.3}
 
 rm -rf "$B/assets" "$B/classes" "$B"/*.apk "$B/res.zip" "$B/classes.dex"
 # 1) Web game -> assets
@@ -58,7 +58,7 @@ fi
 python3 tools/align.py "$B/unsigned.apk" "$B/aligned.apk"
 mkdir -p "$B/signer"
 javac -nowarn -cp "$T/apksig.jar" -d "$B/signer" tools/Sign.java
-java --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.pkcs=ALL-UNNAMED --add-exports java.base/sun.security.util=ALL-UNNAMED -cp "$T/apksig.jar:$B/signer" Sign "$B/aligned.apk" "$B/BlueFeltPoker.apk" "$KS" "$PASS" poker
-python3 tools/align.py --check "$B/BlueFeltPoker.apk"
+java --add-exports java.base/sun.security.x509=ALL-UNNAMED --add-exports java.base/sun.security.pkcs=ALL-UNNAMED --add-exports java.base/sun.security.util=ALL-UNNAMED -cp "$T/apksig.jar:$B/signer" Sign "$B/aligned.apk" "$B/PlayingCards.apk" "$KS" "$PASS" poker
+python3 tools/align.py --check "$B/PlayingCards.apk"
 rm -f "$B/unsigned.apk" "$B/aligned.apk"
-echo "Built: $B/BlueFeltPoker.apk"
+echo "Built: $B/PlayingCards.apk"

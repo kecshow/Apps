@@ -7,8 +7,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Blue Felt Poker">
-  <title>Blue Felt Poker</title>
+  <meta name="apple-mobile-web-app-title" content="Playing Cards">
+  <title>Playing Cards</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
@@ -34,19 +34,22 @@
           <div class="rail"></div>
           <div class="felt">
             <div class="felt-line"></div>
-            <svg class="felt-text" viewBox="0 0 300 460" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-              <defs>
-                <path id="arcTop" d="M 40 175 A 115 115 0 0 1 260 175" />
-                <path id="arcBottom" d="M 52 290 A 105 105 0 0 0 248 290" />
-              </defs>
-              <text class="felt-title"><textPath href="#arcTop" startOffset="50%" text-anchor="middle" id="feltTitle">TEXAS HOLD'EM</textPath></text>
-              <text class="felt-suits" x="150" y="152" text-anchor="middle">♠&#xFE0E; ♥&#xFE0E; ♣&#xFE0E; ♦&#xFE0E;</text>
-              <text class="felt-sub"><textPath href="#arcBottom" startOffset="50%" text-anchor="middle">♠&#xFE0E; POKER ♥&#xFE0E; NO LIMIT ♣&#xFE0E; POKER ♦&#xFE0E;</textPath></text>
-              <text class="felt-small" id="feltSmall" x="150" y="392" text-anchor="middle">DEALER BURNS ONE CARD BEFORE EACH ROUND</text>
-            </svg>
-            <div class="center">
+            <!-- felt-box has the same proportions as the printed text (300 x 460 units), so the pot, the
+                 board and your bet always sit in the gaps between the printed lines, on any screen size -->
+            <div class="felt-box">
+              <svg class="felt-text" viewBox="0 0 300 460" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                <defs>
+                  <path id="arcTop" d="M 40 175 A 115 115 0 0 1 260 175" />
+                  <path id="arcBottom" d="M 52 280 A 105 105 0 0 0 248 280" />
+                </defs>
+                <text class="felt-title"><textPath href="#arcTop" startOffset="50%" text-anchor="middle" id="feltTitle">TEXAS HOLD'EM</textPath></text>
+                <text class="felt-suits" x="150" y="166" text-anchor="middle">♠&#xFE0E; ♥&#xFE0E; ♣&#xFE0E; ♦&#xFE0E;</text>
+                <text class="felt-sub"><textPath href="#arcBottom" startOffset="50%" text-anchor="middle">♠&#xFE0E; POKER ♥&#xFE0E; NO LIMIT ♣&#xFE0E; POKER ♦&#xFE0E;</textPath></text>
+                <text class="felt-small" id="feltSmall" x="150" y="392" text-anchor="middle">DEALER BURNS ONE CARD BEFORE EACH ROUND</text>
+              </svg>
               <div id="pot" class="pot"><span class="chip-ico"></span><span id="potAmt">$0</span></div>
               <div id="board" class="board"></div>
+              <div id="myBet" class="my-bet"><span class="chip-ico"></span><span id="myBetAmt">Your bet $0</span></div>
             </div>
           </div>
 
@@ -55,10 +58,6 @@
           <div class="seat" id="seat-2" data-pos="top"></div>
           <div class="seat" id="seat-3" data-pos="right"></div>
 
-          <div class="bet" id="bet-0" data-pos="bottom"></div>
-          <div class="bet" id="bet-1" data-pos="left"></div>
-          <div class="bet" id="bet-2" data-pos="top"></div>
-          <div class="bet" id="bet-3" data-pos="right"></div>
         </div>
       </div>
 
@@ -235,7 +234,7 @@
   <div id="startScreen" class="overlay show">
     <div class="sheet start">
       <div class="logo">♠&#xFE0E; ♥&#xFE0E; ♣&#xFE0E; ♦&#xFE0E;</div>
-      <h1>Blue Felt Poker</h1>
+      <h1>Playing Cards</h1>
       <p>Choose a game. Your chips are kept for each one.</p>
       <button class="big-btn mode-btn" data-mode="holdem"><b>Texas Hold'em</b><span class="mode-sub" data-sub="holdem">2 private cards + 5 shared</span></button>
       <button class="big-btn mode-btn" data-mode="draw"><b>Five Card Draw</b><span class="mode-sub" data-sub="draw">5 private cards, swap up to 3</span></button>

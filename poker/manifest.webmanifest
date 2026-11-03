@@ -1,6 +1,6 @@
 {
-  "name": "Blue Felt Poker",
-  "short_name": "Poker",
+  "name": "Playing Cards",
+  "short_name": "Playing Cards",
   "start_url": ".",
   "display": "standalone",
   "orientation": "portrait",
