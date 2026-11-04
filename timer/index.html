@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0d1015">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Timer">
+  <title>Timer</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <main>
+    <!-- ======================= TIMER ======================= -->
+    <section id="view-timer" class="view active">
+      <!-- Running and paused timers -->
+      <div id="timerList" class="pane timer-list">
+        <header class="bar">
+          <h1>Timer</h1>
+          <button id="addBtn" class="add-btn" aria-label="Add timer">
+            <svg viewBox="0 0 24 24" class="ic"><path d="M12 5v14M5 12h14"/></svg><span>Add</span>
+          </button>
+        </header>
+        <div id="notifyHint" class="hint" hidden>
+          <svg viewBox="0 0 24 24" class="ic"><path d="M6 16v-5a6 6 0 0 1 9.6-4.8M18 10.5V16l1.5 2H8M10 20.5a2 2 0 0 0 4 0M4 4l16 16"/></svg>
+          <span>Notifications are off, so timers can't ring while the app is closed.</span>
+          <button id="notifyAllow" class="pill">Allow</button>
+        </div>
+        <div id="cards" class="cards"></div>
+      </div>
+
+      <!-- New timer: keypad -->
+      <div id="newTimer" class="pane new-timer">
+        <header class="bar">
+          <h1>New timer</h1>
+          <button id="kpClose" class="icon-btn" aria-label="Back to timers">
+            <svg viewBox="0 0 24 24" class="ic"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </header>
+        <div class="entry" id="entry" aria-live="polite"></div>
+        <input id="labelInput" class="label-input" maxlength="24" placeholder="Label (optional)" autocomplete="off" enterkeyhint="done">
+        <div class="presets" id="presets"></div>
+        <div class="keys" id="keys">
+          <button data-d="1">1</button><button data-d="2">2</button><button data-d="3">3</button>
+          <button data-d="4">4</button><button data-d="5">5</button><button data-d="6">6</button>
+          <button data-d="7">7</button><button data-d="8">8</button><button data-d="9">9</button>
+          <button data-d="00">00</button><button data-d="0">0</button>
+          <button data-d="del" class="del" aria-label="Delete digit">
+            <svg viewBox="0 0 24 24" class="ic"><path d="M9 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6-7z"/><path d="M12.5 9.5l5 5M17.5 9.5l-5 5"/></svg>
+          </button>
+        </div>
+        <div class="kp-foot">
+          <button id="kpStart" class="start-btn" aria-label="Start timer" disabled>
+            <svg viewBox="0 0 24 24" class="ic fill"><path d="M8 5.5v13l11-6.5z"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= STOPWATCH ======================= -->
+    <section id="view-sw" class="view">
+      <header class="bar"><h1>Stopwatch</h1></header>
+      <div class="sw-dial">
+        <svg viewBox="0 0 220 220" class="ring">
+          <circle class="track" cx="110" cy="110" r="100"/>
+          <circle id="swArc" class="prog" cx="110" cy="110" r="100"/>
+          <circle id="swDot" class="dot" cx="110" cy="10" r="7"/>
+        </svg>
+        <div class="dial-center">
+          <div class="sw-time"><span id="swMain">00:00</span><span id="swFrac" class="frac">.00</span></div>
+        </div>
+      </div>
+      <div class="sw-controls">
+        <button id="swLeft" class="round ghost" disabled>Lap</button>
+        <button id="swRight" class="round primary">Start</button>
+      </div>
+      <div class="laps-wrap">
+        <ol id="laps" class="laps"></ol>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar" role="tablist">
+    <button class="tabbtn active" data-tab="timer" role="tab">
+      <svg viewBox="0 0 24 24" class="ic"><path d="M6.5 3h11M6.5 21h11M8 3v2.5c0 2.6 4 4.3 4 6.5s-4 3.9-4 6.5V21M16 3v2.5c0 2.6-4 4.3-4 6.5s4 3.9 4 6.5V21"/></svg>
+      <span>Timer</span><i class="badge"></i>
+    </button>
+    <button class="tabbtn" data-tab="sw" role="tab">
+      <svg viewBox="0 0 24 24" class="ic"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.8M9.5 2.5h5M12 2.5V6M18.2 6.8l1.6-1.6"/></svg>
+      <span>Stopwatch</span><i class="badge"></i>
+    </button>
+  </nav>
+
+  <!-- ======================= TIME'S UP ======================= -->
+  <div id="alarm" class="alarm" hidden>
+    <div class="alarm-body">
+      <div class="alarm-bell">
+        <svg viewBox="0 0 24 24" class="ic"><path d="M6 16v-5a6 6 0 1 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>
+      </div>
+      <div class="alarm-title">Time's up</div>
+      <div id="alarmLabel" class="alarm-label"></div>
+      <div id="alarmOver" class="alarm-over">-0:00</div>
+      <div id="alarmMore" class="alarm-more"></div>
+    </div>
+    <div class="alarm-actions">
+      <button id="alarmPlus" class="round ghost">+1:00</button>
+      <button id="alarmStop" class="stop-btn">Stop</button>
+    </div>
+  </div>
+</div>
+<script src="js/time.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
