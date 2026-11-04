@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.SoundPool;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,6 +24,9 @@ public class MainActivity extends Activity {
 
     private WebView web;
     private MediaPlayer player;
+    private boolean ringing, awake;
+    private SoundPool sounds;
+    private int sGo, sRest, sTick, sDone;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -43,6 +47,12 @@ public class MainActivity extends Activity {
             }
         });
         web.addJavascriptInterface(new Bridge(), "TimerBridge");
+        // Workout beeps, at alarm volume so they are heard over music
+        sounds = new SoundPool(4, AudioManager.STREAM_ALARM, 0);
+        sGo = sounds.load(this, R.raw.w_go, 1);
+        sRest = sounds.load(this, R.raw.w_rest, 1);
+        sTick = sounds.load(this, R.raw.w_tick, 1);
+        sDone = sounds.load(this, R.raw.w_done, 1);
         setContentView(web);
         if (state != null) web.restoreState(state);
         else web.loadUrl("file:///android_asset/index.html");
@@ -75,6 +85,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         stopRinging();
+        sounds.release();
         super.onDestroy();
     }
 
@@ -87,7 +98,8 @@ public class MainActivity extends Activity {
     /** Plays the phone's alarm sound (at alarm volume) and vibrates while a timer rings in the app. */
     private void startRinging() {
         stopRinging();
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        ringing = true;
+        updateScreenOn();
         Uri sound = Alarms.alarmSound();
         if (sound != null) {
             try {
@@ -114,7 +126,27 @@ public class MainActivity extends Activity {
         }
         Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         if (v != null) v.cancel();
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        ringing = false;
+        updateScreenOn();
+    }
+
+    /** The screen stays on while a timer rings or a workout runs. */
+    private void updateScreenOn() {
+        if (ringing || awake) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
+
+    /** A workout sound: "go" (a round starts), "rest", "tick" (3-2-1) or "done", with a short vibration. */
+    private void cue(String kind) {
+        int id;
+        long[] vibrate;
+        if ("go".equals(kind)) { id = sGo; vibrate = Workout.VIBRATE_GO; }
+        else if ("rest".equals(kind)) { id = sRest; vibrate = Workout.VIBRATE_REST; }
+        else if ("done".equals(kind)) { id = sDone; vibrate = Workout.VIBRATE_DONE; }
+        else { id = sTick; vibrate = null; }
+        sounds.play(id, 1f, 1f, 1, 0, 1f);
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrate != null && v != null && v.hasVibrator()) v.vibrate(vibrate, -1);
     }
 
     private void askForNotifications() {
@@ -175,6 +207,24 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() { askForNotifications(); }
             });
+        }
+
+        @JavascriptInterface
+        public void cue(String kind) {
+            MainActivity.this.cue(kind);
+        }
+
+        @JavascriptInterface
+        public void keepAwake(final boolean on) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { awake = on; updateScreenOn(); }
+            });
+        }
+
+        @JavascriptInterface
+        public void setWorkout(String json) {
+            Workout.set(MainActivity.this, json);
         }
 
         @JavascriptInterface

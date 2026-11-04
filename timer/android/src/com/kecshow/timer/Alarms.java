@@ -26,7 +26,7 @@ final class Alarms {
     static final long[] VIBRATE = {0, 600, 400, 600, 400, 600, 1200};
     private static final String CHANNEL = "timer_done";
     private static final String PREFS = "alarms";
-    private static final int FLAG_IMMUTABLE = 0x04000000; // PendingIntent.FLAG_IMMUTABLE (API 23)
+    static final int FLAG_IMMUTABLE = 0x04000000; // PendingIntent.FLAG_IMMUTABLE (API 23)
 
     private Alarms() {}
 
@@ -82,44 +82,52 @@ final class Alarms {
     }
 
     static void notifyDone(Context c, String id, String label) {
-        NotificationManager nm = nm(c);
-        Notification.Builder b;
-        if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel ch = new NotificationChannel(CHANNEL, "Timer alarms", NotificationManager.IMPORTANCE_HIGH);
-            ch.setDescription("Rings when a timer finishes");
-            ch.setSound(alarmSound(), new AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build());
-            ch.enableVibration(true);
-            ch.setVibrationPattern(VIBRATE);
-            ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
-            nm.createNotificationChannel(ch); // does nothing if it already exists
-            b = new Notification.Builder(c, CHANNEL).setTimeoutAfter(10 * 60 * 1000L);
-        } else {
-            b = new Notification.Builder(c)
-                    .setPriority(Notification.PRIORITY_MAX)
-                    .setSound(alarmSound(), AudioManager.STREAM_ALARM)
-                    .setVibrate(VIBRATE);
-        }
         PendingIntent stop = broadcast(c, STOP, id, label, PendingIntent.FLAG_UPDATE_CURRENT);
-        Intent open = new Intent(c, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        b.setSmallIcon(R.drawable.ic_stat_timer)
-                .setColor(0xFFFF8A3D)
+        Notification.Builder b = builder(c, CHANNEL, "Timer alarms", "Rings when a timer finishes", alarmSound(), VIBRATE);
+        if (Build.VERSION.SDK_INT >= 26) b.setTimeoutAfter(10 * 60 * 1000L);
+        b.setColor(0xFFFF8A3D)
                 .setContentTitle("Time's up")
                 .setContentText(label == null || label.isEmpty() ? "Timer" : label)
-                .setCategory(Notification.CATEGORY_ALARM)
-                .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setWhen(System.currentTimeMillis())
                 .setShowWhen(true)
                 .setUsesChronometer(true) // counts the time since it went off
-                .setAutoCancel(true)
-                .setContentIntent(PendingIntent.getActivity(c, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE))
                 .setDeleteIntent(stop)
                 .addAction(0, "Stop", stop);
         Notification n = b.build();
         n.flags |= Notification.FLAG_INSISTENT; // repeat the sound until the notification goes away
-        nm.notify(id.hashCode(), n);
+        nm(c).notify(id.hashCode(), n);
+    }
+
+    /**
+     * A heads-up notification that plays `sound` at alarm volume and opens the app when tapped. On Android 8+
+     * the sound and vibration belong to the channel, which is created the first time it is used.
+     */
+    static Notification.Builder builder(Context c, String channel, String name, String description, Uri sound, long[] vibrate) {
+        Notification.Builder b;
+        if (Build.VERSION.SDK_INT >= 26) {
+            NotificationChannel ch = new NotificationChannel(channel, name, NotificationManager.IMPORTANCE_HIGH);
+            ch.setDescription(description);
+            ch.setSound(sound, new AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build());
+            ch.enableVibration(true);
+            ch.setVibrationPattern(vibrate);
+            ch.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            nm(c).createNotificationChannel(ch); // does nothing if it already exists
+            b = new Notification.Builder(c, channel);
+        } else {
+            b = new Notification.Builder(c)
+                    .setPriority(Notification.PRIORITY_MAX)
+                    .setSound(sound, AudioManager.STREAM_ALARM)
+                    .setVibrate(vibrate);
+        }
+        Intent open = new Intent(c, MainActivity.class).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        return b.setSmallIcon(R.drawable.ic_stat_timer)
+                .setCategory(Notification.CATEGORY_ALARM)
+                .setVisibility(Notification.VISIBILITY_PUBLIC)
+                .setAutoCancel(true)
+                .setContentIntent(PendingIntent.getActivity(c, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | FLAG_IMMUTABLE));
     }
 
     /** The phone's alarm sound, or another sound if no alarm sound is set. */
@@ -139,7 +147,7 @@ final class Alarms {
         return PendingIntent.getBroadcast(c, id.hashCode(), i, flags | FLAG_IMMUTABLE);
     }
 
-    private static NotificationManager nm(Context c) {
+    static NotificationManager nm(Context c) {
         return (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 }

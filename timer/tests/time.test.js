@@ -147,4 +147,64 @@ test('lap stats mark the fastest and slowest lap', () => {
   assert.deepStrictEqual(T.lapStats([3000, 4000, 7000]).fastest, 1);
 });
 
+// ---- workouts
+const cfg = (o) => ({ prepare: 10 * SEC, work: 45 * SEC, rest: 15 * SEC, rounds: 3, cycles: 2, cycleRest: MIN, ...o });
+const kinds = (ph) => ph.map((p) => p.kind + (p.kind === 'prepare' ? '' : p.round + '/' + p.cycle)).join(' ');
+
+test('workout order: rounds with rests, cycles with a cycle rest, nothing after the last round', () => {
+  const ph = T.workoutPhases(cfg());
+  assert.strictEqual(kinds(ph), 'prepare work1/1 rest1/1 work2/1 rest2/1 work3/1 cycleRest3/1 work1/2 rest1/2 work2/2 rest2/2 work3/2');
+  assert.strictEqual(T.workoutTotal(ph), 10 * SEC + 6 * 45 * SEC + 4 * 15 * SEC + MIN);
+  let t = 0;
+  for (const p of ph) { assert.strictEqual(p.start, t); t += p.dur; }
+});
+test('workout: phases set to 0:00 are left out; no cycle rest falls back to the normal rest', () => {
+  assert.strictEqual(kinds(T.workoutPhases(cfg({ prepare: 0, rest: 0, cycleRest: 0 }))), 'work1/1 work2/1 work3/1 work1/2 work2/2 work3/2');
+  assert.strictEqual(kinds(T.workoutPhases(cfg({ prepare: 0, cycleRest: 0, cycles: 2, rounds: 2 }))), 'work1/1 rest1/1 work2/1 rest2/1 work1/2 rest1/2 work2/2');
+  assert.strictEqual(kinds(T.workoutPhases(cfg({ prepare: 0, rounds: 1, cycles: 1 }))), 'work1/1');
+});
+test('Tabata is 4 minutes after get ready', () => {
+  const ph = T.workoutPhases({ prepare: 10 * SEC, work: 20 * SEC, rest: 10 * SEC, rounds: 8, cycles: 1, cycleRest: MIN });
+  assert.strictEqual(ph.length, 1 + 8 + 7);
+  assert.strictEqual(T.workoutTotal(ph), 10 * SEC + 8 * 20 * SEC + 7 * 10 * SEC);
+});
+test('workoutAt finds the phase and the time left', () => {
+  const ph = T.workoutPhases(cfg());
+  assert.deepStrictEqual([T.workoutAt(ph, 0).i, T.workoutAt(ph, 0).left], [0, 10 * SEC]);
+  const a = T.workoutAt(ph, 10 * SEC);
+  assert.strictEqual(a.phase.kind, 'work'); assert.strictEqual(a.left, 45 * SEC);
+  const b = T.workoutAt(ph, 10 * SEC + 45 * SEC + 3 * SEC);
+  assert.strictEqual(b.phase.kind, 'rest'); assert.strictEqual(b.left, 12 * SEC);
+  assert.ok(T.workoutAt(ph, T.workoutTotal(ph)).done);
+  assert.ok(!T.workoutAt(ph, T.workoutTotal(ph) - 1).done);
+});
+test('workout skip and back', () => {
+  const ph = T.workoutPhases(cfg());
+  let run = T.swStart(T.swReset(), 0);
+  run = T.workoutSkip(ph, run, 3000);                            // skip get ready
+  assert.strictEqual(T.swElapsed(run, 3000), 10 * SEC);
+  assert.strictEqual(T.workoutAt(ph, T.swElapsed(run, 8000)).phase.kind, 'work');
+  run = T.workoutBack(ph, run, 8000);                            // 5 s into the round: back to its start
+  assert.strictEqual(T.swElapsed(run, 8000), 10 * SEC);
+  run = T.workoutBack(ph, run, 9000);                            // 1 s in: back to get ready
+  assert.strictEqual(T.swElapsed(run, 9000), 0);
+  run = T.workoutBack(ph, run, 9500);                            // already at the first phase
+  assert.strictEqual(T.swElapsed(run, 9500), 0);
+  const paused = T.swPause(run, 10000);
+  const sk = T.workoutSkip(ph, paused, 20000);                   // skipping while paused stays paused
+  assert.strictEqual(sk.running, false);
+  assert.strictEqual(T.swElapsed(sk, 99999), 10 * SEC);
+  const end = T.workoutSeek(run, T.workoutTotal(ph), 0);
+  assert.strictEqual(T.workoutSkip(ph, end, 0), end);            // nothing after the end
+  assert.strictEqual(T.swElapsed(T.workoutBack(ph, end, 0), 0), ph[ph.length - 1].start);
+});
+test('duration steppers', () => {
+  const up = (s) => T.stepDuration(s * SEC, 1, 0, 99 * MIN) / SEC;
+  const down = (s) => T.stepDuration(s * SEC, -1, 0, 99 * MIN) / SEC;
+  assert.deepStrictEqual([up(0), up(45), up(47), up(55), up(60), up(285), up(300), up(1200)], [5, 50, 50, 60, 75, 300, 330, 1260]);
+  assert.deepStrictEqual([down(5), down(47), down(60), down(75), down(300), down(330), down(1260)], [0, 45, 55, 60, 285, 300, 1200]);
+  assert.strictEqual(T.stepDuration(5 * SEC, -1, 5 * SEC, MIN), 5 * SEC);   // limits
+  assert.strictEqual(T.stepDuration(MIN, 1, 0, MIN), MIN);
+});
+
 console.log(`all ${passed} tests passed`);

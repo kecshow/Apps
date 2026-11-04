@@ -24,6 +24,7 @@ public class Notification {
         public Builder setWhen(long when) { throw new RuntimeException("Stub!"); }
         public Builder setShowWhen(boolean show) { throw new RuntimeException("Stub!"); }
         public Builder setUsesChronometer(boolean b) { throw new RuntimeException("Stub!"); }
+        public Builder setChronometerCountDown(boolean countDown) { throw new RuntimeException("Stub!"); } // API 24
         public Builder setAutoCancel(boolean autoCancel) { throw new RuntimeException("Stub!"); }
         public Builder setPriority(int pri) { throw new RuntimeException("Stub!"); }
         public Builder setSound(Uri sound, int streamType) { throw new RuntimeException("Stub!"); }

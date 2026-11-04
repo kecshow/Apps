@@ -125,11 +125,74 @@
     return { splits, fastest, slowest };
   }
 
+  // ---- Workout (interval training) ----
+  // cfg: { prepare, work, rest, cycleRest } in ms and { rounds, cycles } as counts.
+  // Order: get ready, then each cycle's rounds with a rest between rounds. Cycles are separated by the cycle
+  // rest, or by the normal rest if the cycle rest is off. There is no rest after the very last round.
+  // Phases with no time (rest 0:00, get ready 0:00) are left out.
+  function workoutPhases(cfg) {
+    const out = [];
+    const add = (kind, dur, round, cycle) => { if (dur > 0) out.push({ kind, dur, round, cycle, start: 0 }); };
+    add('prepare', cfg.prepare, 1, 1);
+    for (let c = 1; c <= cfg.cycles; c++) {
+      for (let r = 1; r <= cfg.rounds; r++) {
+        add('work', cfg.work, r, c);
+        if (r < cfg.rounds) add('rest', cfg.rest, r, c);
+      }
+      if (c < cfg.cycles) {
+        if (cfg.cycleRest > 0) add('cycleRest', cfg.cycleRest, cfg.rounds, c);
+        else add('rest', cfg.rest, cfg.rounds, c);
+      }
+    }
+    let t = 0;
+    for (const p of out) { p.start = t; t += p.dur; }
+    return out;
+  }
+  function workoutTotal(phases) {
+    const last = phases[phases.length - 1];
+    return last ? last.start + last.dur : 0;
+  }
+  // Where a workout is after `elapsed` ms: the phase index (phases.length once it's finished) and time left.
+  function workoutAt(phases, elapsed) {
+    for (let i = 0; i < phases.length; i++) {
+      const p = phases[i];
+      if (elapsed < p.start + p.dur) return { i, phase: p, left: p.start + p.dur - elapsed, done: false };
+    }
+    return { i: phases.length, phase: null, left: 0, done: true };
+  }
+  // A running workout is a stopwatch ({ running, startAt, acc }) that can jump to a point in the workout.
+  function workoutSeek(run, ms, now) { return { ...run, acc: Math.max(0, ms), startAt: now }; }
+  // Skip to the start of the next phase (or the end).
+  function workoutSkip(phases, run, now) {
+    const at = workoutAt(phases, swElapsed(run, now));
+    if (at.done) return run;
+    return workoutSeek(run, at.phase.start + at.phase.dur, now);
+  }
+  // Back to the start of this phase, or to the previous phase if this one started under 2 seconds ago.
+  function workoutBack(phases, run, now) {
+    const el = swElapsed(run, now);
+    const at = workoutAt(phases, el);
+    const i = Math.min(at.i, phases.length - 1);
+    if (i < 0) return run;
+    const into = el - phases[i].start;
+    return workoutSeek(run, into >= 2 * SEC || i === 0 ? phases[i].start : phases[i - 1].start, now);
+  }
+  // +/- buttons for a duration: 5 s steps under a minute, 15 s under 5 min, 30 s under 20 min, then 1 min.
+  // The result snaps to the step, so 0:47 + goes to 0:50.
+  function stepDuration(ms, dir, min, max) {
+    const s = Math.round(ms / SEC);
+    const ref = dir > 0 ? s : s - 1;
+    const step = ref < 60 ? 5 : ref < 300 ? 15 : ref < 1200 ? 30 : 60;
+    const n = dir > 0 ? Math.floor(s / step) * step + step : Math.ceil(s / step) * step - step;
+    return Math.min(max, Math.max(min, n * SEC));
+  }
+
   return {
     SEC, MIN, HOUR,
     pushDigits, popDigit, entryParts, entryMs, msToEntry,
     clock, timerText, overText, stopwatchParts, stopwatchText, durationWords,
     createTimer, remainingMs, isIdle, progress, pause, resume, reset, addMinute, isDue,
     swElapsed, swStart, swPause, swLap, swReset, lapStats,
+    workoutPhases, workoutTotal, workoutAt, workoutSeek, workoutSkip, workoutBack, stepDuration,
   };
 });

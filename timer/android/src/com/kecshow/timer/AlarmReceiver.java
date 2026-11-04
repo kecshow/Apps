@@ -4,10 +4,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-/** A timer's alarm went off, or its notification's Stop button was pressed. */
+/** A timer's alarm went off, its notification's Stop button was pressed, or a workout phase changed. */
 public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context c, Intent i) {
+        if (Workout.FIRE.equals(i.getAction())) {
+            Workout.fire(c);
+            return;
+        }
         String id = i.getStringExtra("id");
         if (id == null) return;
         if (Alarms.STOP.equals(i.getAction())) {

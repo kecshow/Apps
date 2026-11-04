@@ -17,8 +17,27 @@
 <body>
 <div id="app">
   <main>
+    <!-- ======================= WORKOUT (interval training) ======================= -->
+    <section id="view-workout" class="view active">
+      <header class="bar"><h1>Workout</h1></header>
+      <div class="w-scroll">
+        <div class="w-summary">
+          <div class="w-total"><span>Total</span><b id="wTotal">0:00</b></div>
+          <div id="wShape" class="w-shape"></div>
+          <div id="wStrip" class="strip"></div>
+        </div>
+        <div class="presets w-presets" id="wPresets"></div>
+        <div class="w-rows" id="wRows"></div>
+      </div>
+      <div class="w-foot">
+        <button id="wStart" class="w-start">
+          <svg viewBox="0 0 24 24" class="ic fill"><path d="M8 5.5v13l11-6.5z"/></svg><span>Start workout</span>
+        </button>
+      </div>
+    </section>
+
     <!-- ======================= TIMER ======================= -->
-    <section id="view-timer" class="view active">
+    <section id="view-timer" class="view">
       <!-- Running and paused timers -->
       <div id="timerList" class="pane timer-list">
         <header class="bar">
@@ -87,7 +106,11 @@
   </main>
 
   <nav class="tabbar" role="tablist">
-    <button class="tabbtn active" data-tab="timer" role="tab">
+    <button class="tabbtn active" data-tab="workout" role="tab">
+      <svg viewBox="0 0 24 24" class="ic"><path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/></svg>
+      <span>Workout</span><i class="badge"></i>
+    </button>
+    <button class="tabbtn" data-tab="timer" role="tab">
       <svg viewBox="0 0 24 24" class="ic"><path d="M6.5 3h11M6.5 21h11M8 3v2.5c0 2.6 4 4.3 4 6.5s-4 3.9-4 6.5V21M16 3v2.5c0 2.6-4 4.3-4 6.5s4 3.9 4 6.5V21"/></svg>
       <span>Timer</span><i class="badge"></i>
     </button>
@@ -96,6 +119,75 @@
       <span>Stopwatch</span><i class="badge"></i>
     </button>
   </nav>
+
+  <!-- ======================= WORKOUT RUNNING ======================= -->
+  <div id="wRun" class="w-run" hidden>
+    <div class="w-top">
+      <button id="wEnd" class="w-icon" aria-label="End workout">
+        <svg viewBox="0 0 24 24" class="ic"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div id="wCount" class="w-count"></div>
+      <button id="wMute" class="w-icon" aria-label="Sound on">
+        <svg viewBox="0 0 24 24" class="ic on"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>
+        <svg viewBox="0 0 24 24" class="ic off"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+      </button>
+    </div>
+    <div id="wPhase" class="w-phase"></div>
+    <div class="w-dial">
+      <svg viewBox="0 0 220 220" class="ring">
+        <circle class="track" cx="110" cy="110" r="100"/>
+        <circle id="wArc" class="prog" cx="110" cy="110" r="100"/>
+      </svg>
+      <div class="dial-center">
+        <div id="wTime" class="w-time">0:00</div>
+        <div id="wPausedTag" class="w-paused">Paused</div>
+      </div>
+    </div>
+    <div id="wNext" class="w-next"></div>
+    <div class="w-controls">
+      <button id="wBack" class="w-btn" aria-label="Back to the start of this phase">
+        <svg viewBox="0 0 24 24" class="ic fill"><rect x="5" y="5.5" width="2.6" height="13" rx="1"/><path d="M19 6v12l-9.5-6z"/></svg>
+      </button>
+      <button id="wToggle" class="w-btn big" aria-label="Pause"></button>
+      <button id="wSkip" class="w-btn" aria-label="Skip to the next phase">
+        <svg viewBox="0 0 24 24" class="ic fill"><rect x="16.4" y="5.5" width="2.6" height="13" rx="1"/><path d="M5 6v12l9.5-6z"/></svg>
+      </button>
+    </div>
+    <div class="w-bottom">
+      <div class="w-left"><span>Total left</span><b id="wLeft">0:00</b></div>
+      <div class="strip-box"><div id="wRunStrip" class="strip"></div><i id="wDoneShade" class="strip-shade"></i><i id="wMarker" class="strip-marker"></i></div>
+    </div>
+
+    <div id="wDone" class="w-done" hidden>
+      <div class="w-done-badge">
+        <svg viewBox="0 0 24 24" class="ic"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      </div>
+      <div class="w-done-title">Workout complete</div>
+      <div id="wDoneSummary" class="w-done-summary"></div>
+      <div class="w-done-actions">
+        <button id="wAgain" class="pill big ghost">Again</button>
+        <button id="wClose" class="pill big">Done</button>
+      </div>
+    </div>
+
+    <div id="wConfirm" class="sheet-wrap" hidden>
+      <div class="sheet">
+        <div class="sheet-title">End this workout?</div>
+        <div class="sheet-actions">
+          <button id="wConfirmNo" class="pill big ghost">Keep going</button>
+          <button id="wConfirmYes" class="pill big danger">End</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Colour picker for a workout phase -->
+  <div id="colorSheet" class="sheet-wrap" hidden>
+    <div class="sheet">
+      <div id="colorTitle" class="sheet-title"></div>
+      <div id="swatches" class="swatches"></div>
+    </div>
+  </div>
 
   <!-- ======================= TIME'S UP ======================= -->
   <div id="alarm" class="alarm" hidden>
